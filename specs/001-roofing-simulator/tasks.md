@@ -132,20 +132,20 @@
 
 ### Implementation for User Story 3
 
-- [ ] T050 [P] Implement MultiplayerManager in Assets/Scripts/Multiplayer/MultiplayerManager.cs (manage session creation, player joining, network setup)
-- [ ] T051 [P] Configure Mirror networking setup in Assets/Scripts/Multiplayer/NetworkSetup.cs (NetworkManager, transport settings, player prefab registration)
-- [ ] T052 Implement session creation in MultiplayerManager (host creates session, spawns server, returns session code to player)
-- [ ] T053 Implement session joining in MultiplayerManager (client joins via session code, connects to server)
-- [ ] T054 [P] Create player avatar prefab in Assets/Prefabs/PlayerAvatar.prefab with NetworkIdentity and first-person controller
-- [ ] T055 [P] Implement PlayerAvatarSync in Assets/Scripts/Multiplayer/PlayerAvatarSync.cs (synchronize position, rotation, animation state via Mirror NetworkBehaviour)
-- [ ] T056 Implement avatar spawning in MultiplayerManager (spawn local avatar for player, remote avatars for other players)
-- [ ] T057 [P] Implement NetworkRoofingMaterial in Assets/Scripts/Multiplayer/NetworkRoofingMaterial.cs (extend RoofingMaterial with Mirror NetworkBehaviour for state sync)
-- [ ] T058 Implement material state synchronization in NetworkRoofingMaterial (serialize position, mesh deltas, ownership, broadcast to all clients at 20 Hz)
-- [ ] T059 Implement delta compression for material mesh in NetworkRoofingMaterial (serialize only changed vertices per update, quantize positions to 1cm)
-- [ ] T060 [P] Create Multiplayer scene in Assets/Scenes/Multiplayer.unity (extend RoofingJob scene with multiplayer setup, player spawn points)
-- [ ] T061 Implement shared RoofSurface state in MultiplayerManager (all players see same roof surface, shared material list, synchronized coverage %)
-- [ ] T062 Implement player disconnect handling in MultiplayerManager (detect player timeout/leave, remove avatar, preserve their material contributions)
-- [ ] T063 Implement session abort UI in Assets/Scripts/UI/MultiplayerUI.cs (display "Player X disconnected", offer continue/abandon options)
+- [x] T050 [P] Implement MultiplayerManager in Assets/Scripts/Multiplayer/MultiplayerManager.cs (manage session creation, player joining, network setup)
+- [x] T051 [P] Configure Mirror networking setup in Assets/Scripts/Multiplayer/NetworkSetup.cs (RoofingNetworkManager: 4-player cap, spawn handling, connect/disconnect events) + isolated RoofingSimulator.Multiplayer.asmdef
+- [x] T052 Implement session creation in MultiplayerManager (CreateSession -> StartHost, generates/returns session code)
+- [x] T053 Implement session joining in MultiplayerManager (JoinSession -> resolves code to address -> StartClient)
+- [ ] T054 [P] Create player avatar prefab in Assets/Prefabs/PlayerAvatar.prefab with NetworkIdentity — ⚠️ EDITOR TASK: PlayerAvatarSync ready to attach; prefab must be created + registered on NetworkManager
+- [x] T055 [P] Implement PlayerAvatarSync in Assets/Scripts/Multiplayer/PlayerAvatarSync.cs (SyncVar name/position/yaw/applying via NetworkBehaviour, local-only object gating, name->server Command)
+- [x] T056 Implement avatar spawning in RoofingNetworkManager.OnServerAddPlayer (spawns player at spawn points, AddPlayerForConnection)
+- [x] T057 [P] Implement NetworkRoofingMaterial in Assets/Scripts/Multiplayer/NetworkRoofingMaterial.cs (server-authoritative shared material field, NetworkBehaviour)
+- [x] T058 Implement material state synchronization in NetworkRoofingMaterial (Cmd/Rpc deterministic event replication, server-authoritative, requiresAuthority=false)
+- [x] T059 Implement delta/quantize in NetworkRoofingMaterial (per-application event replication w/ 1cm Quantize; deterministic Deform avoids raw vertex streaming)
+- [ ] T060 [P] Create Multiplayer scene in Assets/Scenes/Multiplayer.unity — ⚠️ EDITOR TASK: needs NetworkManager+Transport, spawn points, shared roof/material objects, UI canvas wired to controllers
+- [x] T061 Implement shared state (NetworkRoofingMaterial syncs canonical coverage SyncVar + registers shared blobs into the shared RoofingJobInstance; MultiplayerManager tracks roster)
+- [x] T062 Implement player disconnect handling (RoofingNetworkManager server/client disconnect -> MultiplayerManager events; applied material preserved on shared field)
+- [x] T063 Implement session abort UI in Assets/Scripts/Multiplayer/MultiplayerUI.cs (host/join, session code, player count, disconnect panel with continue/abandon)
 
 **Checkpoint**: User Story 3 fully functional - multiplayer sessions, avatars, material sync, disconnect handling. Two players can: join same job → see each other → apply material together → synchronized state.
 

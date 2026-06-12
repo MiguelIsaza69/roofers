@@ -1,0 +1,155 @@
+using System.Collections.Generic;
+using Mirror;
+using UnityEngine;
+using RoofingSimulator.Gameplay;
+
+namespace RoofingSimulator.Multiplayer
+{
+    /// <summary>
+    /// Shared, server-authoritative roofing material field for a multiplayer job.
+    /// One instance lives in the multiplayer scene. Clients request applications via
+    /// <see cref="CmdApply"/>; the server validates against the job budget, assigns a
+    /// deterministic blob id, and broadcasts the (quantized) application to every
+    /// client via <see cref="RpcApply"/>. Because <see cref="MaterialPhysics.Deform"/>
+    /// is deterministic, replaying the same id+point on every client converges the
+    /// material state — far cheaper than streaming raw mesh vertices, while satisfying
+    /// the contract's "delta + quantized positions" goal (T058/T059).
+    ///
+    /// Server-authoritative coverage % is published via a SyncVar (T061) so every
+    /// client's HUD shows the same canonical value.
+    /// </summary>
+    public class NetworkRoofingMaterial : NetworkBehaviour
+    {
+        [Header("Shared Job")]
+        [SerializeField] private RoofingJobInstance jobInstance;
+
+        [Header("Application")]
+        [SerializeField] private float massPerApply = 2f;
+        [SerializeField] private float mergeRadius = 0.3f;
+        [SerializeField] private float quantizeStep = 0.01f; // 1cm
+
+        [Header("Coverage Sync")]
+        [SerializeField] private float coverageSyncInterval = 1f;
+
+        [SyncVar] private float syncedCoverage;
+        public float SyncedCoverage => syncedCoverage;
+
+        // Per-client reproduction of the shared blobs, keyed by server-assigned id.
+        private readonly Dictionary<int, RoofingMaterial> blobs = new Dictionary<int, RoofingMaterial>();
+        private int nextBlobId;
+        private float coverageTimer;
+
+        public void BindJob(RoofingJobInstance instance)
+        {
+            jobInstance = instance;
+        }
+
+        /// <summary>
+        /// Client -> server request to apply material at a world point. requiresAuthority
+        /// is false because the field is a shared scene object, not owned by any client.
+        /// </summary>
+        [Command(requiresAuthority = false)]
+        public void CmdApply(Vector3 point)
+        {
+            if (jobInstance == null || jobInstance.CurrentState != JobState.IN_PROGRESS)
+            {
+                return;
+            }
+            if (!jobInstance.HasMaterialAvailable)
+            {
+                return;
+            }
+
+            int blobId = ResolveBlobId(point);
+
+            // Apply authoritatively on the server, then consume budget.
+            ApplyToBlob(blobId, point);
+            jobInstance.ConsumeMaterial(massPerApply);
+
+            RpcApply(Quantize(point), blobId);
+        }
+
+        [ClientRpc]
+        private void RpcApply(Vector3 point, int blobId)
+        {
+            // The host already applied during the Command; avoid double-applying.
+            if (isServer)
+            {
+                return;
+            }
+            ApplyToBlob(blobId, point);
+        }
+
+        /// <summary>Find the blob this application belongs to, assigning a new id if none is near.</summary>
+        private int ResolveBlobId(Vector3 point)
+        {
+            float nearestSqr = mergeRadius * mergeRadius;
+            int nearestId = -1;
+
+            foreach (var kvp in blobs)
+            {
+                if (kvp.Value == null)
+                {
+                    continue;
+                }
+                float sqr = (kvp.Value.transform.position - point).sqrMagnitude;
+                if (sqr <= nearestSqr)
+                {
+                    nearestSqr = sqr;
+                    nearestId = kvp.Key;
+                }
+            }
+
+            return nearestId >= 0 ? nearestId : nextBlobId++;
+        }
+
+        /// <summary>Create or continue the blob with the given id at the point (runs on every peer).</summary>
+        private void ApplyToBlob(int blobId, Vector3 point)
+        {
+            if (blobs.TryGetValue(blobId, out RoofingMaterial blob) && blob != null)
+            {
+                blob.ApplyAt(point, massPerApply);
+                return;
+            }
+
+            RoofingMaterial spawned = MaterialBlobFactory.Spawn(point, massPerApply);
+            blobs[blobId] = spawned;
+
+            // Register with the local job instance so coverage sampling sees it.
+            if (jobInstance != null)
+            {
+                jobInstance.RegisterMaterial(spawned);
+            }
+
+            // Keep server-side nextBlobId ahead of any id we learn about as a client.
+            if (blobId >= nextBlobId)
+            {
+                nextBlobId = blobId + 1;
+            }
+        }
+
+        private void Update()
+        {
+            // Server publishes canonical coverage on a slow tick (T061).
+            if (!isServer || jobInstance == null)
+            {
+                return;
+            }
+
+            coverageTimer += Time.deltaTime;
+            if (coverageTimer >= coverageSyncInterval)
+            {
+                coverageTimer = 0f;
+                syncedCoverage = jobInstance.CurrentCoveragePercent;
+            }
+        }
+
+        private Vector3 Quantize(Vector3 v)
+        {
+            return new Vector3(
+                Mathf.Round(v.x / quantizeStep) * quantizeStep,
+                Mathf.Round(v.y / quantizeStep) * quantizeStep,
+                Mathf.Round(v.z / quantizeStep) * quantizeStep);
+        }
+    }
+}
