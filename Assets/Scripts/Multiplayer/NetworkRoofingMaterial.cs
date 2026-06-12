@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using Mirror;
 using UnityEngine;
+using RoofingSimulator.Core;
 using RoofingSimulator.Gameplay;
+using RoofingSimulator.UI;
 
 namespace RoofingSimulator.Multiplayer
 {
@@ -17,11 +19,19 @@ namespace RoofingSimulator.Multiplayer
     ///
     /// Server-authoritative coverage % is published via a SyncVar (T061) so every
     /// client's HUD shows the same canonical value.
+    ///
+    /// Job selection is synchronized via the <see cref="activeJobIndex"/> SyncVar: the
+    /// server picks the job (from the host's selection / career) and every client loads
+    /// and starts the *same* job config, so a co-op match plays one shared job. This
+    /// component owns the job lifecycle in multiplayer — the multiplayer scene does NOT
+    /// use JobSceneController.
     /// </summary>
     public class NetworkRoofingMaterial : NetworkBehaviour
     {
         [Header("Shared Job")]
         [SerializeField] private RoofingJobInstance jobInstance;
+        [Tooltip("Optional HUD bound to the shared job when it starts.")]
+        [SerializeField] private HUD hud;
 
         [Header("Application")]
         [SerializeField] private float massPerApply = 2f;
@@ -34,14 +44,85 @@ namespace RoofingSimulator.Multiplayer
         [SyncVar] private float syncedCoverage;
         public float SyncedCoverage => syncedCoverage;
 
+        // Synchronized job selection: server sets it, clients load the same job.
+        [SyncVar(hook = nameof(OnActiveJobChanged))]
+        private int activeJobIndex = -1;
+        public int ActiveJobIndex => activeJobIndex;
+
         // Per-client reproduction of the shared blobs, keyed by server-assigned id.
         private readonly Dictionary<int, RoofingMaterial> blobs = new Dictionary<int, RoofingMaterial>();
         private int nextBlobId;
         private float coverageTimer;
+        private bool jobStarted;
 
         public void BindJob(RoofingJobInstance instance)
         {
             jobInstance = instance;
+        }
+
+        // ----- Synchronized job lifecycle -----
+
+        public override void OnStartServer()
+        {
+            // The server decides which job the session plays and publishes it.
+            activeJobIndex = ResolveServerJobIndex();
+            InitializeAndStartJob(activeJobIndex);
+        }
+
+        public override void OnStartClient()
+        {
+            // Host already initialized in OnStartServer. A pure client usually has the
+            // SyncVar populated by spawn time; the hook covers a late arrival.
+            if (!isServer && activeJobIndex >= 0)
+            {
+                InitializeAndStartJob(activeJobIndex);
+            }
+        }
+
+        private void OnActiveJobChanged(int _, int newIndex)
+        {
+            if (!isServer)
+            {
+                InitializeAndStartJob(newIndex);
+            }
+        }
+
+        /// <summary>
+        /// Pick the session's job: the host's explicit selection, else their career's
+        /// current job, else the first job. Server-side only.
+        /// </summary>
+        private int ResolveServerJobIndex()
+        {
+            int selected = GameManager.Instance != null ? GameManager.Instance.SelectedJobIndex : -1;
+            if (selected >= 0)
+            {
+                return selected;
+            }
+
+            Career career = CareerManager.Instance.ActiveCareer;
+            return career != null ? Mathf.Clamp(career.currentJobIndex, 0, CareerManager.Instance.TotalJobs - 1) : 0;
+        }
+
+        /// <summary>
+        /// Load the shared job config into the local job instance and start it.
+        /// Idempotent: safe to call from OnStartServer/OnStartClient and the SyncVar hook.
+        /// </summary>
+        private void InitializeAndStartJob(int index)
+        {
+            if (jobStarted || jobInstance == null || index < 0)
+            {
+                return;
+            }
+
+            if (CareerManager.Instance.InitializeJobInstance(jobInstance, index))
+            {
+                jobInstance.StartJob();
+                if (hud != null)
+                {
+                    hud.Bind(jobInstance);
+                }
+                jobStarted = true;
+            }
         }
 
         /// <summary>

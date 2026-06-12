@@ -324,11 +324,16 @@ On **NetworkRoofingMaterial**:
 | Field | Value |
 |-------|-------|
 | `jobInstance` | the shared `RoofingJobInstance` in this scene |
+| `hud` | (optional) the in-scene `HUD` to bind when the job starts |
 | `massPerApply` / `mergeRadius` / `quantizeStep` | 2 / 0.3 / 0.01 |
 | `coverageSyncInterval` | 1 |
 
-> The scene also needs a `RoofingJobInstance` + `RoofSurface` (as in §4) that every client
-> initializes to the **same** job. See Known Gaps §7 about selecting that job.
+> **`NetworkRoofingMaterial` owns the job lifecycle in multiplayer** — it picks the job on
+> the server (host's selection → career current job → job 0), syncs it via the
+> `activeJobIndex` SyncVar, and every client loads and `StartJob()`s the **same** config.
+> So the multiplayer scene needs a `RoofingJobInstance` + `RoofSurface` (as in §4) wired to
+> the `jobInstance` field, but **does NOT use `JobSceneController`** (that's the
+> single-player driver — adding it here would double-initialize the job).
 
 ### 6.4 Multiplayer UI
 Build a Canvas mirroring `MultiplayerUI`'s fields:
@@ -347,12 +352,13 @@ Build a Canvas mirroring `MultiplayerUI`'s fields:
 
 These are real limitations to plan around — not yet handled in code:
 
-1. **Multiplayer job selection isn't synced.** Each client initializes its local
-   `RoofingJobInstance` independently. For a first test, hardcode the same job index on
-   all clients (e.g., have the multiplayer scene's controller call
-   `CareerManager.Instance.InitializeJobInstance(instance, 0)`), or add a SyncVar for the
-   chosen job index on `NetworkRoofingMaterial` and init from it in `OnStartClient`. This
-   is the main missing piece for a clean multiplayer match.
+1. **Multiplayer material budget & completion aren't fully shared.** Job *selection* is
+   now synced (`activeJobIndex` SyncVar — every client plays the same job), and coverage
+   is server-authoritative. But each client tracks its own material budget locally
+   (only the server's `ConsumeMaterial` runs), so a client's HUD "material remaining" can
+   read high, and there's no co-op completion→career-record flow (whose career advances is
+   undefined per the spec). Syncing `materialRemaining` (a SyncVar like coverage) and
+   deciding co-op progression are the remaining MP polish items.
 2. **Session codes are direct addresses.** `JoinSession(code)` treats the code as an
    IP/hostname. LAN/same-machine works; internet play needs a relay/matchmaker
    (`ResolveAddress` is the seam to add it).
