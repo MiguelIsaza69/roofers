@@ -352,13 +352,14 @@ Build a Canvas mirroring `MultiplayerUI`'s fields:
 
 These are real limitations to plan around — not yet handled in code:
 
-1. **Multiplayer material budget & completion aren't fully shared.** Job *selection* is
-   now synced (`activeJobIndex` SyncVar — every client plays the same job), and coverage
-   is server-authoritative. But each client tracks its own material budget locally
-   (only the server's `ConsumeMaterial` runs), so a client's HUD "material remaining" can
-   read high, and there's no co-op completion→career-record flow (whose career advances is
-   undefined per the spec). Syncing `materialRemaining` (a SyncVar like coverage) and
-   deciding co-op progression are the remaining MP polish items.
+1. **Multiplayer co-op completion isn't shared.** Job *selection* (`activeJobIndex`
+   SyncVar), coverage, and the material-budget HUD value (`syncedMaterialRemaining` →
+   `HUD.SetMaterialRemaining`) are all synced now. What remains is the **job outcome**:
+   each peer evaluates completion/failure on its own `RoofingJobInstance`, and there's no
+   co-op completion→career-record flow (whose career advances is undefined per the spec).
+   So a client can reach the win state slightly before/after the host, and progression
+   isn't recorded for a co-op session. Broadcasting an authoritative outcome and deciding
+   co-op progression are the remaining MP items.
 2. **Session codes are direct addresses.** `JoinSession(code)` treats the code as an
    IP/hostname. LAN/same-machine works; internet play needs a relay/matchmaker
    (`ResolveAddress` is the seam to add it).

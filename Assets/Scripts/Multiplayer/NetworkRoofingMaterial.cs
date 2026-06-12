@@ -49,6 +49,12 @@ namespace RoofingSimulator.Multiplayer
         private int activeJobIndex = -1;
         public int ActiveJobIndex => activeJobIndex;
 
+        // Server-authoritative material budget (clients only consume on the server, so
+        // their local value is stale). Mirrored to each client's HUD for display.
+        [SyncVar(hook = nameof(OnMaterialRemainingChanged))]
+        private float syncedMaterialRemaining = -1f;
+        public float SyncedMaterialRemaining => syncedMaterialRemaining;
+
         // Per-client reproduction of the shared blobs, keyed by server-assigned id.
         private readonly Dictionary<int, RoofingMaterial> blobs = new Dictionary<int, RoofingMaterial>();
         private int nextBlobId;
@@ -87,6 +93,15 @@ namespace RoofingSimulator.Multiplayer
             }
         }
 
+        private void OnMaterialRemainingChanged(float _, float newValue)
+        {
+            // Ignore the uninitialized sentinel; push the authoritative value to the HUD.
+            if (newValue >= 0f && hud != null)
+            {
+                hud.SetMaterialRemaining(newValue);
+            }
+        }
+
         /// <summary>
         /// Pick the session's job: the host's explicit selection, else their career's
         /// current job, else the first job. Server-side only.
@@ -121,6 +136,10 @@ namespace RoofingSimulator.Multiplayer
                 {
                     hud.Bind(jobInstance);
                 }
+                if (isServer)
+                {
+                    syncedMaterialRemaining = jobInstance.MaterialRemaining;
+                }
                 jobStarted = true;
             }
         }
@@ -146,6 +165,7 @@ namespace RoofingSimulator.Multiplayer
             // Apply authoritatively on the server, then consume budget.
             ApplyToBlob(blobId, point);
             jobInstance.ConsumeMaterial(massPerApply);
+            syncedMaterialRemaining = jobInstance.MaterialRemaining;
 
             RpcApply(Quantize(point), blobId);
         }

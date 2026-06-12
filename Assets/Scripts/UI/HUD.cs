@@ -28,6 +28,17 @@ namespace RoofingSimulator.UI
 
         private RoofingJobInstance job;
 
+        // In multiplayer the authoritative material budget lives on the server, so the
+        // local job instance's value is stale on clients. When set, this override is
+        // displayed instead (see NetworkRoofingMaterial). Null = use the local value.
+        private float? materialOverrideKg;
+
+        /// <summary>Display a server-authoritative material-remaining value (multiplayer).</summary>
+        public void SetMaterialRemaining(float kg)
+        {
+            materialOverrideKg = kg;
+        }
+
         /// <summary>Connect the HUD to the active job instance.</summary>
         public void Bind(RoofingJobInstance instance)
         {
@@ -78,9 +89,14 @@ namespace RoofingSimulator.UI
                 return;
             }
 
-            materialLabel.text = job.HasUnlimitedMaterial
-                ? "Material: ∞"
-                : $"Material: {Mathf.Max(0f, job.MaterialRemaining):0} kg";
+            if (job.HasUnlimitedMaterial)
+            {
+                materialLabel.text = "Material: ∞";
+                return;
+            }
+
+            float remaining = materialOverrideKg ?? job.MaterialRemaining;
+            materialLabel.text = $"Material: {Mathf.Max(0f, remaining):0} kg";
         }
 
         private void UpdateTime()
