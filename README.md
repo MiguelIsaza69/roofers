@@ -19,10 +19,9 @@ escalating difficulty, and play solo or in 2–4-player co-op. Built spec-first 
   most likely in the Mirror networking layer, the least-certain code.
 - **The game is not yet runnable** without an Editor pass to author scenes, prefabs, and
   UI, and to wire components. That pass is fully documented (see `EDITOR_SETUP_GUIDE.md`).
-- **Source of truth for progress** is `specs/001-roofing-simulator/tasks.md` (checkboxes,
-  with ⚠️ notes on Editor/art tasks) and the **git log**. The `PHASE_*_STATUS.md` and
-  `PROGRESS_SUMMARY.md` files are **historical snapshots** and are now stale — don't trust
-  their percentages; keep them only as a build diary.
+- **Source of truth for progress**: `STATUS.md` (human-readable, kept current),
+  `specs/001-roofing-simulator/tasks.md` (task-level checkboxes with ⚠️ notes on
+  Editor/art tasks), and the **git log**.
 
 ---
 

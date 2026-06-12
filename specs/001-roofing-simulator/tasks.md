@@ -19,16 +19,16 @@
 - [x] T001 Create Unity project structure per plan.md with Assets/, Tests/, and ProjectSettings/
 - [ ] T002 [P] Add Mirror networking library (version 2024.1+) to Assets/Plugins/ or via Unity Package Manager
 - [ ] T003 [P] Add Newtonsoft Json.NET (NuGet package) for career save/load serialization
-- [ ] T004 [P] Configure assembly definitions: RoofingSimulator.asmdef (main game), RoofingSimulator.Tests.asmdef
-- [ ] T005 Create scene structure: Assets/Scenes/MainMenu.unity, Career.unity, RoofingJob.unity, Multiplayer.unity
+- [x] T004 [P] Configure assembly definitions: RoofingSimulator.asmdef (main game), RoofingSimulator.Tests.asmdef
+- [x] T005 Create scene structure: Assets/Scenes/MainMenu.unity, Career.unity, RoofingJob.unity, Multiplayer.unity (placeholder .unity files; UI hierarchies authored in Editor per T030/T032/T044/T060)
 
 ### Project Configuration
 
-- [ ] T006 Configure input system: Assets/Input/ with mouse/keyboard and gamepad bindings for tool application, camera control
-- [ ] T007 Set up game folder structure per plan.md in Assets/Scripts/ (Core/, Gameplay/, Input/, UI/, Multiplayer/, Persistence/, Utils/)
-- [ ] T008 Create prefab directories: Assets/Prefabs/ with subdirectories for RoofingJobs/, RoofGeometries/, Materials/, UI/, VFX/
+- [ ] T006 Configure input system: Assets/Input/ with mouse/keyboard and gamepad bindings — ⚠️ EDITOR TASK: code uses legacy Mouse X/Y + Fire1 axes; dedicated input-action asset not yet authored
+- [x] T007 Set up game folder structure per plan.md in Assets/Scripts/ (Core/, Gameplay/, Input/, UI/, Multiplayer/, Persistence/, Utils/)
+- [x] T008 Create prefab directories: Assets/Prefabs/ with subdirectories for RoofingJobs/, RoofGeometries/, Materials/, UI/, VFX/
 
-**Checkpoint**: Project structure complete, dependencies installed, ready for foundational phase
+**Checkpoint**: Project structure complete (T002/T003 package installs + T006 input asset remain Editor tasks)
 
 ---
 
