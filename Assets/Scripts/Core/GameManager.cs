@@ -163,5 +163,16 @@ namespace RoofingSimulator.Core
             LastCompletion = null;
             SetState(GameState.CareerOverview);
         }
+
+        /// <summary>
+        /// Stash a completion produced by a co-op session (the host's authoritative
+        /// outcome) so the completion screen can show it when the player returns to the
+        /// career overview. Career recording/persistence is done by CareerManager.
+        /// </summary>
+        public void NotifyMultiplayerCompletion(JobCompletion completion)
+        {
+            LastCompletion = completion;
+            SetState(GameState.JobComplete);
+        }
     }
 }

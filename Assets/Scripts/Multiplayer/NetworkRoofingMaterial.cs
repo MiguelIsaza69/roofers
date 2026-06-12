@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Mirror;
 using UnityEngine;
@@ -60,6 +61,7 @@ namespace RoofingSimulator.Multiplayer
         private int nextBlobId;
         private float coverageTimer;
         private bool jobStarted;
+        private bool outcomeBroadcast;
 
         public void BindJob(RoofingJobInstance instance)
         {
@@ -102,6 +104,71 @@ namespace RoofingSimulator.Multiplayer
             }
         }
 
+        public override void OnStopServer()
+        {
+            if (jobInstance != null)
+            {
+                jobInstance.OnJobCompleted -= HandleServerJobCompleted;
+            }
+        }
+
+        // ----- Authoritative co-op outcome (host records it for everyone) -----
+
+        /// <summary>
+        /// Server-only: when the shared job's completion criteria are met, the host
+        /// builds the authoritative result and broadcasts it so every player credits the
+        /// job to their own career.
+        /// </summary>
+        private void HandleServerJobCompleted(RoofingJobInstance instance)
+        {
+            if (outcomeBroadcast)
+            {
+                return;
+            }
+            outcomeBroadcast = true;
+
+            JobCompletion c = instance.GenerateCompletion();
+            RpcJobCompleted(
+                c.jobId,
+                (float)c.timeToComplete.TotalSeconds,
+                c.materialUsed,
+                c.finalCoveragePercent,
+                (int)c.qualityRating);
+        }
+
+        /// <summary>
+        /// Runs on every client (including the host): record the host's authoritative
+        /// completion into this player's own local career, and stash it for the
+        /// completion screen.
+        /// </summary>
+        [ClientRpc]
+        private void RpcJobCompleted(int jobId, float timeSeconds, float materialUsed,
+            float coveragePercent, int qualityRating)
+        {
+            var completion = new JobCompletion
+            {
+                jobId = jobId,
+                completedDate = DateTime.UtcNow,
+                timeToComplete = TimeSpan.FromSeconds(timeSeconds),
+                materialUsed = materialUsed,
+                finalCoveragePercent = coveragePercent,
+                attemptCount = 1,
+                qualityRating = (QualityRating)qualityRating,
+                Job = CareerManager.Instance.GetJob(jobId)
+            };
+
+            // Credit it to THIS player's own (local) career, if they have one.
+            if (CareerManager.Instance.HasActiveCareer)
+            {
+                CareerManager.Instance.RecordJobCompletion(completion);
+            }
+
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.NotifyMultiplayerCompletion(completion);
+            }
+        }
+
         /// <summary>
         /// Pick the session's job: the host's explicit selection, else their career's
         /// current job, else the first job. Server-side only.
@@ -139,6 +206,8 @@ namespace RoofingSimulator.Multiplayer
                 if (isServer)
                 {
                     syncedMaterialRemaining = jobInstance.MaterialRemaining;
+                    // The host is authoritative for the job outcome.
+                    jobInstance.OnJobCompleted += HandleServerJobCompleted;
                 }
                 jobStarted = true;
             }

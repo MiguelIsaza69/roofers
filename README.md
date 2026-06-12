@@ -108,9 +108,10 @@ the workflow extension config.
 These are tracked in `EDITOR_SETUP_GUIDE.md` §7 and the ⚠️ task notes:
 - **Editor authoring pending**: UI canvases (T030/T032/T044), player-avatar prefab
   (T054), multiplayer scene (T060), roof meshes (T047/T069).
-- **Multiplayer polish**: job *selection* (`activeJobIndex` SyncVar), coverage, and the
-  material-budget HUD value are synced; what remains is an authoritative co-op
-  *outcome* (completion/failure) and co-op→career progression.
+- **Multiplayer polish**: co-op is functional — job selection, coverage, material-budget
+  HUD, and authoritative completion (host broadcasts; every player records it to their own
+  career) are synced. Remaining: failure isn't broadcast, and there's no auto scene
+  transition on completion (players use Leave; the completion screen shows on return).
 - **Session codes are direct addresses** (LAN/direct works; internet needs a relay).
 - **Phase 7 validation/builds** (`tasks.md` T074–T085, T087–T098) depend on the Editor
   pass to be meaningful; the coverage hot-path optimization (T086) and EditMode unit
