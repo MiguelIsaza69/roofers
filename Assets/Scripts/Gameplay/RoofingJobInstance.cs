@@ -27,6 +27,20 @@ namespace RoofingSimulator.Gameplay
         public float CurrentCoveragePercent => roofSurface?.coveragePercent ?? 0;
         public float CurrentAverageThickness => roofSurface?.averageThickness ?? 0;
 
+        /// <summary>True when this job has no material budget cap.</summary>
+        public bool HasUnlimitedMaterial => !job?.materialBudget.HasValue ?? true;
+
+        /// <summary>Seconds left if the job is timed, else null.</summary>
+        public float? TimeRemainingSeconds =>
+            job != null && job.timeLimitSeconds.HasValue
+                ? Mathf.Max(0f, job.timeLimitSeconds.Value - elapsedSeconds)
+                : (float?)null;
+
+        /// <summary>Raised when the job's completion criteria are met.</summary>
+        public event Action<RoofingJobInstance> OnJobCompleted;
+        /// <summary>Raised when the job fails (time/material). Carries the reason.</summary>
+        public event Action<RoofingJobInstance, JobFailureReason> OnJobFailed;
+
         private void OnEnable()
         {
             if (roofSurface == null)
@@ -118,17 +132,36 @@ namespace RoofingSimulator.Gameplay
             currentState = JobState.ABANDONED;
         }
 
+        /// <summary>Register a newly spawned blob with this job and consume its mass.</summary>
         public void ApplyMaterial(RoofingMaterial material, float mass)
         {
-            if (currentState != JobState.IN_PROGRESS)
+            RegisterMaterial(material);
+            ConsumeMaterial(mass);
+        }
+
+        /// <summary>Track a material blob as part of this job (no budget change).</summary>
+        public void RegisterMaterial(RoofingMaterial material)
+        {
+            if (material == null || appliedMaterials.Contains(material))
+            {
                 return;
-
+            }
             appliedMaterials.Add(material);
-            materialRemaining -= mass;
-
-            // Tag the material so it can be detected by raycast
             material.gameObject.tag = "RoofingMaterial";
         }
+
+        /// <summary>Deduct material from the budget (used when adding to an existing blob).</summary>
+        public void ConsumeMaterial(float mass)
+        {
+            if (currentState != JobState.IN_PROGRESS)
+            {
+                return;
+            }
+            materialRemaining -= mass;
+        }
+
+        /// <summary>True if there is budget left to apply more material (or unlimited).</summary>
+        public bool HasMaterialAvailable => HasUnlimitedMaterial || materialRemaining > 0f;
 
         private bool CheckCompletion()
         {
@@ -164,6 +197,7 @@ namespace RoofingSimulator.Gameplay
             QualityRating rating = DetermineQualityRating();
 
             Debug.Log($"Job {job.name} completed with rating: {rating}");
+            OnJobCompleted?.Invoke(this);
         }
 
         private void FailJob(JobFailureReason reason)
@@ -175,6 +209,7 @@ namespace RoofingSimulator.Gameplay
             hasFailed = true;
 
             Debug.Log($"Job {job.name} failed: {reason}");
+            OnJobFailed?.Invoke(this, reason);
         }
 
         private QualityRating DetermineQualityRating()

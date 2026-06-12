@@ -106,19 +106,19 @@
 
 ### Implementation for User Story 2
 
-- [ ] T037 [P] Implement material application tool in Assets/Scripts/Gameplay/RoofingMaterialTool.cs (respond to player input, create RoofingMaterial blob at raycast hit)
-- [ ] T038 [P] Implement RoofingMaterial GameObject prefab in Assets/Prefabs/Materials/RoofingMaterial.prefab with MeshCollider and dynamic mesh renderer
-- [ ] T039 Implement material spawning in RoofingMaterialTool (instantiate prefab at raycast point, set initial mass/properties based on player input intensity)
-- [ ] T040 [P] Implement MaterialPhysics deformation in Assets/Scripts/Gameplay/MaterialPhysics.cs (apply input force to vertices, simulate gravity, update mesh each frame)
-- [ ] T041 Implement adhesion/merging logic in Assets/Scripts/Gameplay/MaterialPhysics.cs (detect adjacent material blobs, merge when close, single physics body)
-- [ ] T042 [P] Implement spreading/thinning behavior in Assets/Scripts/Gameplay/MaterialPhysics.cs (material area expands, thickness decreases based on spreadingRate parameter)
-- [ ] T043 Implement geometry constraint in Assets/Scripts/Gameplay/MaterialPhysics.cs (project material vertices to roof surface bounds, prevent floating)
-- [ ] T044 [P] Create RoofingJob scene template in Assets/Scenes/RoofingJob.unity with parameterizable roof geometry and material application UI
-- [ ] T045 [P] Implement JobUI HUD in Assets/Scripts/UI/HUD.cs (display coverage % real-time, material budget remaining, time remaining if constrained)
-- [ ] T046 Implement material preview in Assets/Scripts/Gameplay/RoofingMaterialTool.cs (show material placement preview at raycast hit before application)
-- [ ] T047 [P] Create roof geometry assets (simple models) in Assets/Models/ (residential_small_v1.fbx, commercial_v1.fbx, complex_v2.fbx)
-- [ ] T048 Implement coverage feedback UI in Assets/Scripts/UI/HUD.cs (visual indicator: coverage bar, coverage %, quality status)
-- [ ] T049 Implement real-time coverage calculation in Assets/Scripts/Gameplay/RoofingJobInstance.cs (call CoverageCalculator each frame, update HUD)
+- [x] T037 [P] Implement material application tool in Assets/Scripts/Gameplay/RoofingMaterialTool.cs (respond to player input, create RoofingMaterial blob at raycast hit)
+- [x] T038 [P] Implement RoofingMaterial blob in Assets/Scripts/Gameplay/MaterialBlobFactory.cs (procedural runtime blob w/ MeshCollider + dynamic mesh; authored .prefab optional Editor task)
+- [x] T039 Implement material spawning in RoofingMaterialTool (spawn blob at raycast point, set initial mass/properties based on application rate)
+- [x] T040 [P] Implement MaterialPhysics deformation in Assets/Scripts/Gameplay/MaterialPhysics.cs (apply input force to vertices, simulate gravity, update mesh each frame)
+- [x] T041 Implement adhesion/merging logic (RoofingMaterialTool.ResolveTarget continues nearest blob within mergeRadius; RoofingMaterial.MergeWith/CanMergeWith for blob fusion)
+- [x] T042 [P] Implement spreading/thinning behavior in Assets/Scripts/Gameplay/MaterialPhysics.cs (Deform spreads vertices inward via spreadingRate parameter)
+- [x] T043 Implement geometry constraint in Assets/Scripts/Gameplay/MaterialPhysics.cs (ProjectVertexToSurface clamps vertices to roof, prevents floating)
+- [ ] T044 [P] Create RoofingJob scene template in Assets/Scenes/RoofingJob.unity — ⚠️ EDITOR TASK: JobSceneController.cs builds a procedural roof + rig harness so the scene runs; authored .unity scene still TODO
+- [x] T045 [P] Implement JobUI HUD in Assets/Scripts/UI/HUD.cs (display coverage % real-time, material budget remaining, time remaining if constrained)
+- [x] T046 Implement material preview in Assets/Scripts/Gameplay/RoofingMaterialTool.cs (show material placement preview at raycast hit before application)
+- [ ] T047 [P] Create roof geometry assets (simple models) in Assets/Models/*.fbx — ⚠️ ART TASK: binary meshes need the Editor/DCC tool; JobSceneController generates a procedural roof as a stand-in
+- [x] T048 Implement coverage feedback UI in Assets/Scripts/UI/HUD.cs (coverage bar fill, coverage %, target marker, quality status color)
+- [x] T049 Implement real-time coverage calculation (RoofingJobInstance.Update runs RoofSurface coverage sampling each frame; HUD polls + OnJobCompleted/OnJobFailed events)
 
 **Checkpoint**: User Story 2 fully functional - material application, physics deformation, adhesion, spreading, coverage tracking, HUD feedback complete. Player can: apply material → see deformation → coverage updates → visual feedback.
 
