@@ -83,16 +83,16 @@
 
 ### Implementation for User Story 1
 
-- [ ] T027 [P] Implement GameManager in Assets/Scripts/Core/GameManager.cs (manage game state, scene transitions, career initialization)
-- [ ] T028 [P] Implement CareerManager in Assets/Scripts/Core/CareerManager.cs (track current career, manage job progression, detect job unlocks)
-- [ ] T029 Implement job completion detection in Assets/Scripts/Core/CareerManager.cs (check coverage % and quality thresholds, mark job complete, unlock next job)
-- [ ] T030 [P] Create MainMenu scene UI in Assets/Scenes/MainMenu.unity with "New Career" and "Load Career" buttons
-- [ ] T031 Implement MainMenuUI controller in Assets/Scripts/UI/MainMenuUI.cs (create new career, prompt for player name, load existing careers)
-- [ ] T032 [P] Create Career overview scene in Assets/Scenes/Career.unity showing job list, completion status, progression metrics
-- [ ] T033 Implement CareerUI in Assets/Scripts/UI/CareerUI.cs (display jobs, show completion status, handle job selection/start)
-- [ ] T034 Implement JobBriefing UI in Assets/Scripts/UI/JobBriefingUI.cs (display job requirements: coverage %, quality, material budget, time limit before job starts)
-- [ ] T035 Implement CompletionScreen UI in Assets/Scripts/UI/CompletionScreenUI.cs (display job stats: time, coverage %, quality rating, material used)
-- [ ] T036 Integrate job loading into CareerManager in Assets/Scripts/Core/CareerManager.cs (load job config from JobConfiguration file, instantiate RoofingJobInstance)
+- [x] T027 [P] Implement GameManager in Assets/Scripts/Core/GameManager.cs (manage game state, scene transitions, career initialization)
+- [x] T028 [P] Implement CareerManager progression in Assets/Scripts/Core/CareerManager.cs (track current career, manage job progression, detect job unlocks) + JobCatalog.cs
+- [x] T029 Implement job completion detection in Assets/Scripts/Core/CareerManager.cs (TryCompleteJob checks coverage % and quality thresholds, records + unlocks next job)
+- [ ] T030 [P] Create MainMenu scene UI in Assets/Scenes/MainMenu.unity with "New Career" and "Load Career" buttons — ⚠️ EDITOR TASK: requires hand-authoring uGUI hierarchy; MainMenuUI controller ready to attach
+- [x] T031 Implement MainMenuUI controller in Assets/Scripts/UI/MainMenuUI.cs (create new career, prompt for player name, load existing careers)
+- [ ] T032 [P] Create Career overview scene in Assets/Scenes/Career.unity showing job list, completion status, progression metrics — ⚠️ EDITOR TASK: requires hand-authoring uGUI hierarchy; CareerUI/CompletionScreenUI controllers ready to attach
+- [x] T033 Implement CareerUI in Assets/Scripts/UI/CareerUI.cs (display jobs, show completion status, handle job selection/start)
+- [x] T034 Implement JobBriefing UI in Assets/Scripts/UI/JobBriefingUI.cs (display job requirements: coverage %, quality, material budget, time limit before job starts)
+- [x] T035 Implement CompletionScreen UI in Assets/Scripts/UI/CompletionScreenUI.cs (display job stats: time, coverage %, quality rating, material used)
+- [x] T036 Integrate job loading into CareerManager in Assets/Scripts/Core/CareerManager.cs (InitializeJobInstance loads job config from catalog into RoofingJobInstance)
 
 **Checkpoint**: User Story 1 fully functional - career creation, job progression, persistence, UI complete. Player can: create career → start job → complete job → next job unlocks → progress saved.
 

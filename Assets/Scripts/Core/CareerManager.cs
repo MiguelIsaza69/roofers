@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using RoofingSimulator.Gameplay;
 using RoofingSimulator.Persistence;
 
 namespace RoofingSimulator.Core
@@ -32,6 +33,13 @@ namespace RoofingSimulator.Core
         /// <summary>The career currently loaded into play, or null if none.</summary>
         public Career ActiveCareer { get; private set; }
         public bool HasActiveCareer => ActiveCareer != null;
+
+        private JobCatalog catalog;
+        /// <summary>The job progression catalog (built-in default; Phase 6 loads from JSON).</summary>
+        public JobCatalog Catalog => catalog ??= new JobCatalog();
+
+        /// <summary>Total number of jobs in the progression.</summary>
+        public int TotalJobs => Catalog.Count;
 
         /// <summary>Raised after a career is loaded/created and restored into play.</summary>
         public event Action<Career> OnCareerLoaded;
@@ -147,6 +155,104 @@ namespace RoofingSimulator.Core
         public string[] GetSavedCareerNames()
         {
             return SaveManager.Instance.GetSavedCareerNames();
+        }
+
+        // ----- Job progression -----
+
+        /// <summary>The job the player is currently up to, or null if none.</summary>
+        public RoofingJob GetCurrentJob()
+        {
+            return ActiveCareer == null ? null : Catalog.GetJob(ActiveCareer.currentJobIndex);
+        }
+
+        public RoofingJob GetJob(int index) => Catalog.GetJob(index);
+
+        /// <summary>A job is unlocked if its index is at or below the career's unlock ceiling.</summary>
+        public bool IsJobUnlocked(int index)
+        {
+            return ActiveCareer != null && index >= 0 && index <= ActiveCareer.unlockedJobIndex
+                   && index < TotalJobs;
+        }
+
+        /// <summary>True if the career has a recorded completion for this job.</summary>
+        public bool IsJobCompleted(int index)
+        {
+            if (ActiveCareer?.jobCompletions == null)
+            {
+                return false;
+            }
+            foreach (var completion in ActiveCareer.jobCompletions)
+            {
+                if (completion.jobId == index)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>Set the active job the player is about to play (must be unlocked).</summary>
+        public bool SelectJob(int index)
+        {
+            if (!IsJobUnlocked(index))
+            {
+                Debug.LogWarning($"Job {index} is locked or invalid; cannot select.");
+                return false;
+            }
+            ActiveCareer.currentJobIndex = index;
+            return true;
+        }
+
+        // ----- Job loading & completion (T029, T036) -----
+
+        /// <summary>
+        /// Load a job's configuration from the catalog and initialize a runtime
+        /// instance with it. The caller supplies the scene's RoofingJobInstance.
+        /// </summary>
+        public bool InitializeJobInstance(RoofingJobInstance instance, int jobIndex)
+        {
+            if (instance == null)
+            {
+                Debug.LogError("InitializeJobInstance called with a null instance.");
+                return false;
+            }
+
+            RoofingJob job = Catalog.GetJob(jobIndex);
+            if (job == null)
+            {
+                Debug.LogError($"No job configuration found for index {jobIndex}.");
+                return false;
+            }
+
+            instance.InitializeJob(job);
+            return true;
+        }
+
+        /// <summary>
+        /// Evaluate a finished job instance against its coverage/quality criteria. If
+        /// it passed, record the completion (which unlocks the next job) and return
+        /// the completion record; otherwise return null.
+        /// </summary>
+        public JobCompletion TryCompleteJob(RoofingJobInstance instance)
+        {
+            if (instance == null || instance.job == null)
+            {
+                Debug.LogError("TryCompleteJob requires an initialized job instance.");
+                return null;
+            }
+
+            bool meetsCriteria = instance.job.MeetsCompletionCriteria(
+                instance.CurrentCoveragePercent,
+                instance.CurrentAverageThickness);
+
+            if (!meetsCriteria)
+            {
+                return null;
+            }
+
+            JobCompletion completion = instance.GenerateCompletion();
+            RecordJobCompletion(completion);
+            return completion;
         }
     }
 }

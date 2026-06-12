@@ -49,9 +49,12 @@ namespace RoofingSimulator.Core
         public void CompleteJob(JobCompletion completion)
         {
             jobCompletions.Add(completion);
-            totalJobsCompleted++;
-            currentJobIndex++;
-            unlockedJobIndex = Mathf.Max(unlockedJobIndex, currentJobIndex);
+            totalJobsCompleted = jobCompletions.Count;
+
+            // Unlock the job after the one that was completed, and advance to it.
+            unlockedJobIndex = Mathf.Max(unlockedJobIndex, completion.jobId + 1);
+            currentJobIndex = unlockedJobIndex;
+
             performanceMetrics.UpdateFromCompletion(completion);
             UpdateLastModified();
         }
