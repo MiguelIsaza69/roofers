@@ -4,18 +4,37 @@ using UnityEngine;
 namespace RoofingSimulator.Gameplay
 {
     /// <summary>
-    /// Represents the roof surface where material is applied.
-    /// Tracks coverage through raycast-based grid sampling and manages completion detection.
+    /// Represents the roof surface where material is applied. Tracks coverage by
+    /// sampling a grid of points and raycasting down to detect material.
+    ///
+    /// Performance: the grid is sampled **amortized across frames** (a bounded budget of
+    /// samples per call) with **live aggregates**, so per-frame cost stays flat no matter
+    /// how large the roof is. Raycasts use the single-closest-hit, non-allocating
+    /// <see cref="Physics.Raycast"/> overload (the previous implementation called the
+    /// allocating <c>RaycastAll</c> over the whole grid every frame).
     /// </summary>
     public class RoofSurface : MonoBehaviour
     {
+        [Header("Sampling")]
+        [Tooltip("Max sample points evaluated per UpdateCoverage call (amortization budget).")]
+        [SerializeField] private int samplesPerUpdate = 2048;
+        [Tooltip("Nominal thickness (mm) credited when the roof under a blob can't be found.")]
+        [SerializeField] private float nominalThicknessMm = 8f;
+
         public string id;
         public float totalArea;
         public Mesh roofMesh;
 
         private MeshCollider meshCollider;
-        private List<CoverageSample> coverageSamples = new List<CoverageSample>();
-        private float sampleSpacing = 0.1f; // 10cm spacing by default
+        private readonly List<CoverageSample> coverageSamples = new List<CoverageSample>();
+        private float sampleSpacing = 0.1f;
+        private float sampleOriginY;
+        private float rayDistance = 12f;
+        private int cursor;
+
+        // Live aggregates maintained incrementally as samples are (re)evaluated.
+        private int liveCoveredCount;
+        private float liveThicknessSumMm;
 
         public float totalCovered { get; private set; }
         public float coveragePercent { get; private set; }
@@ -34,79 +53,119 @@ namespace RoofingSimulator.Gameplay
         {
             sampleSpacing = spacing;
             coverageSamples.Clear();
+            cursor = 0;
+            liveCoveredCount = 0;
+            liveThicknessSumMm = 0f;
 
             if (roofMesh == null)
             {
-                roofMesh = GetComponent<MeshFilter>().mesh;
+                var mf = GetComponent<MeshFilter>();
+                if (mf != null) roofMesh = mf.sharedMesh;
+            }
+            if (roofMesh == null)
+            {
+                return;
             }
 
-            // Generate sample points across roof surface
-            // This is a simplified implementation - a full implementation would
-            // distribute points more intelligently across the mesh surface
+            // Sample positions are in WORLD space, just above the roof, pointing down.
             Bounds bounds = roofMesh.bounds;
-            Vector3 min = bounds.min;
-            Vector3 max = bounds.max;
+            Vector3 worldMin = transform.TransformPoint(bounds.min);
+            Vector3 worldMax = transform.TransformPoint(bounds.max);
 
-            for (float x = min.x; x < max.x; x += spacing)
+            sampleOriginY = worldMax.y + 1f;
+            rayDistance = (sampleOriginY - worldMin.y) + 2f;
+
+            for (float x = worldMin.x; x < worldMax.x; x += spacing)
             {
-                for (float z = min.z; z < max.z; z += spacing)
+                for (float z = worldMin.z; z < worldMax.z; z += spacing)
                 {
-                    Vector3 samplePos = new Vector3(x, bounds.max.y + 1f, z);
-                    coverageSamples.Add(new CoverageSample { position = samplePos });
+                    coverageSamples.Add(new CoverageSample
+                    {
+                        position = new Vector3(x, sampleOriginY, z)
+                    });
                 }
             }
         }
 
+        /// <summary>
+        /// Re-evaluates up to <see cref="samplesPerUpdate"/> grid points this call and
+        /// republishes the aggregate coverage. The <paramref name="materials"/> list is
+        /// unused (detection is raycast-based) but kept for call-site compatibility.
+        /// </summary>
         public void UpdateCoverage(List<RoofingMaterial> materials)
         {
             if (coverageSamples.Count == 0)
             {
-                InitializeCoverageSampling();
+                InitializeCoverageSampling(sampleSpacing);
+                if (coverageSamples.Count == 0) return;
             }
 
-            float coveredCount = 0;
-            float totalThickness = 0;
-            const float COVERAGE_THRESHOLD = 0.02f; // 2cm threshold for coverage
-
-            foreach (var sample in coverageSamples)
+            int budget = Mathf.Min(samplesPerUpdate, coverageSamples.Count);
+            for (int i = 0; i < budget; i++)
             {
-                // Raycast downward from sample point
-                Ray ray = new Ray(sample.position, Vector3.down);
-                RaycastHit[] hits = Physics.RaycastAll(ray, 10f);
-
-                float closestMaterialDistance = float.MaxValue;
-
-                foreach (var hit in hits)
+                EvaluateSample(coverageSamples[cursor]);
+                cursor++;
+                if (cursor >= coverageSamples.Count)
                 {
-                    if (hit.collider.CompareTag("RoofingMaterial") ||
-                        hit.collider.GetComponent<RoofingMaterial>() != null)
-                    {
-                        closestMaterialDistance = Mathf.Min(closestMaterialDistance, hit.distance);
-                    }
+                    cursor = 0;
                 }
+            }
 
-                // Check if covered
-                if (closestMaterialDistance < COVERAGE_THRESHOLD)
+            float sampleArea = sampleSpacing * sampleSpacing;
+            totalCovered = liveCoveredCount * sampleArea;
+            coveragePercent = totalArea > 0f ? (totalCovered / totalArea) * 100f : 0f;
+            averageThickness = liveCoveredCount > 0 ? liveThicknessSumMm / liveCoveredCount : 0f;
+        }
+
+        /// <summary>
+        /// Re-evaluate a single sample, adjusting the live aggregates by the delta of its
+        /// old vs new contribution (so the published totals are always current without an
+        /// O(n) recompute).
+        /// </summary>
+        private void EvaluateSample(CoverageSample sample)
+        {
+            // Remove the sample's previous contribution.
+            if (sample.isCovered)
+            {
+                liveCoveredCount--;
+                liveThicknessSumMm -= sample.currentThickness;
+            }
+
+            bool covered = false;
+            float thicknessMm = 0f;
+
+            // Closest hit straight down: material if present, otherwise the bare roof.
+            if (Physics.Raycast(sample.position, Vector3.down, out RaycastHit top,
+                    rayDistance, ~0, QueryTriggerInteraction.Ignore)
+                && top.collider.CompareTag("RoofingMaterial"))
+            {
+                covered = true;
+
+                // Find the roof beneath the material to estimate thickness. Starting just
+                // below the material's top skips the (convex) material collider so the
+                // second ray reaches the roof.
+                Vector3 below = top.point + Vector3.down * 0.02f;
+                if (Physics.Raycast(below, Vector3.down, out RaycastHit roofHit,
+                        rayDistance, ~0, QueryTriggerInteraction.Ignore)
+                    && !roofHit.collider.CompareTag("RoofingMaterial"))
                 {
-                    sample.isCovered = true;
-                    sample.currentThickness = closestMaterialDistance * 100f; // Convert to mm
-                    coveredCount++;
-                    totalThickness += sample.currentThickness;
+                    thicknessMm = Mathf.Max(0f, top.point.y - roofHit.point.y) * 1000f;
                 }
                 else
                 {
-                    sample.isCovered = false;
-                    sample.currentThickness = 0;
+                    thicknessMm = nominalThicknessMm;
                 }
-
-                sample.lastUpdated = System.DateTime.UtcNow;
             }
 
-            // Update statistics
-            float sampleArea = sampleSpacing * sampleSpacing;
-            totalCovered = coveredCount * sampleArea;
-            coveragePercent = totalArea > 0 ? (totalCovered / totalArea) * 100f : 0f;
-            averageThickness = coveredCount > 0 ? totalThickness / coveredCount : 0;
+            sample.isCovered = covered;
+            sample.currentThickness = thicknessMm;
+
+            // Add the new contribution.
+            if (covered)
+            {
+                liveCoveredCount++;
+                liveThicknessSumMm += thicknessMm;
+            }
         }
 
         public bool MeetsCriteria(float minCoveragePercent, float minThickness)
@@ -116,14 +175,17 @@ namespace RoofingSimulator.Gameplay
 
         public void ResetCoverage()
         {
-            totalCovered = 0;
-            coveragePercent = 0;
-            averageThickness = 0;
+            totalCovered = 0f;
+            coveragePercent = 0f;
+            averageThickness = 0f;
+            liveCoveredCount = 0;
+            liveThicknessSumMm = 0f;
+            cursor = 0;
 
             foreach (var sample in coverageSamples)
             {
                 sample.isCovered = false;
-                sample.currentThickness = 0;
+                sample.currentThickness = 0f;
             }
         }
     }
@@ -134,6 +196,5 @@ namespace RoofingSimulator.Gameplay
         public Vector3 position;
         public bool isCovered;
         public float currentThickness;
-        public System.DateTime lastUpdated;
     }
 }

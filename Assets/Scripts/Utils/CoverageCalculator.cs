@@ -10,7 +10,8 @@ namespace RoofingSimulator.Utils
     /// </summary>
     public static class CoverageCalculator
     {
-        private const float COVERAGE_THRESHOLD = 0.02f; // 2cm threshold
+        // Max downward distance for coverage probes (roof + material height headroom).
+        private const float MaxRayDistance = 20f;
 
         /// <summary>
         /// Calculate coverage percentage for a roof surface with applied materials.
@@ -93,50 +94,34 @@ namespace RoofingSimulator.Utils
         /// </summary>
         private static bool IsSampleCovered(Vector3 samplePoint)
         {
-            Ray ray = new Ray(samplePoint, Vector3.down);
-            RaycastHit[] hits = Physics.RaycastAll(ray, 10f);
-
-            foreach (var hit in hits)
-            {
-                // Check if hit is roofing material
-                if (hit.collider.CompareTag("RoofingMaterial") ||
-                    hit.collider.GetComponent<RoofingMaterial>() != null)
-                {
-                    if (hit.distance < COVERAGE_THRESHOLD)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
+            // A column is covered when the closest thing straight down is material
+            // (not the bare roof). Single non-allocating closest-hit raycast.
+            return Physics.Raycast(samplePoint, Vector3.down, out RaycastHit hit, MaxRayDistance,
+                       ~0, QueryTriggerInteraction.Ignore)
+                   && hit.collider.CompareTag("RoofingMaterial");
         }
 
         /// <summary>
-        /// Get the thickness of material at a specific point (in millimeters).
+        /// Get the thickness of material at a specific point (in millimeters): the
+        /// vertical span between the material's top and the roof beneath it.
         /// </summary>
         private static float GetMaterialThicknessAtPoint(Vector3 samplePoint)
         {
-            Ray ray = new Ray(samplePoint, Vector3.down);
-            RaycastHit[] hits = Physics.RaycastAll(ray, 10f);
-
-            float closestDistance = float.MaxValue;
-
-            foreach (var hit in hits)
+            if (!Physics.Raycast(samplePoint, Vector3.down, out RaycastHit top, MaxRayDistance,
+                    ~0, QueryTriggerInteraction.Ignore)
+                || !top.collider.CompareTag("RoofingMaterial"))
             {
-                if (hit.collider.CompareTag("RoofingMaterial") ||
-                    hit.collider.GetComponent<RoofingMaterial>() != null)
-                {
-                    if (hit.distance < closestDistance)
-                    {
-                        closestDistance = hit.distance;
-                    }
-                }
+                return 0f;
             }
 
-            if (closestDistance < COVERAGE_THRESHOLD)
+            // Start just inside the material so the convex collider is skipped and the
+            // second ray reaches the roof underneath.
+            Vector3 below = top.point + Vector3.down * 0.02f;
+            if (Physics.Raycast(below, Vector3.down, out RaycastHit roofHit, MaxRayDistance,
+                    ~0, QueryTriggerInteraction.Ignore)
+                && !roofHit.collider.CompareTag("RoofingMaterial"))
             {
-                return closestDistance * 1000f; // Convert to millimeters
+                return Mathf.Max(0f, top.point.y - roofHit.point.y) * 1000f;
             }
 
             return 0f;

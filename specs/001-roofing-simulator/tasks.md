@@ -195,7 +195,7 @@
 - [ ] T083 Profile physics simulation in Assets/Scripts/Gameplay/MaterialPhysics.cs (target 60+ FPS, optimize vertex updates, reduce calculations)
 - [ ] T084 Optimize mesh deformation updates in MaterialPhysics (batch updates, use GPU compute if necessary for large material blobs)
 - [ ] T085 Optimize network serialization in NetworkRoofingMaterial (ensure < 10 KB/sec per client, delta compression working)
-- [ ] T086 Profile coverage calculation in CoverageCalculator (ensure real-time updates don't drop FPS below 60)
+- [x] T086 Optimize coverage calculation (RoofSurface): amortized grid sampling with bounded per-frame budget + live aggregates, non-allocating closest-hit raycasts (was per-frame RaycastAll over the whole grid), and fixed a correctness bug where coverage was always ~0%. CoverageCalculator helpers aligned. ⚠️ Profiler FPS measurement still needs the Editor.
 - [ ] T087 Optimize scene loading times (target < 1s for career/job scenes)
 
 ### Quality & Documentation

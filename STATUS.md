@@ -12,7 +12,7 @@ former `PHASE_1_STATUS.md`, `PHASE_2_STATUS.md`, and `PROGRESS_SUMMARY.md` (cons
 
 - **All gameplay code for User Stories 1–4 is written** (solo career, putty physics,
   difficulty progression, co-op multiplayer).
-- **63 / 98 tasks complete.** The remaining 35 are almost entirely **Unity Editor / art /
+- **64 / 98 tasks complete.** The remaining 34 are almost entirely **Unity Editor / art /
   validation** tasks that cannot be done from source alone.
 - **Not compiler-verified.** No Editor was in the loop; expect first-open fixes,
   most likely in the Mirror networking layer.
@@ -30,7 +30,7 @@ former `PHASE_1_STATUS.md`, `PHASE_2_STATUS.md`, and `PROGRESS_SUMMARY.md` (cons
 | 4 — Physics (US2, P1) | Material tool, blob factory, MaterialPhysics, HUD, job scene harness | ✅ code | T044 (scene), T047 (roof meshes) |
 | 5 — Multiplayer (US3, P2) | Mirror layer: manager, avatar sync, networked material, lobby UI | ✅ code | T054 (avatar prefab), T060 (MP scene) |
 | 6 — Difficulty (US4, P2) | JSON job configs + loader, 15 jobs, constraint enforcement | ✅ code+data | T069 (roof mesh variants) |
-| 7 — Polish | Validation, profiling, docs, builds | ⛔ not started | T074–T098 (needs Editor) |
+| 7 — Polish | Validation, profiling, docs, builds | ◑ started | Coverage hot-path optimized (T086) + EditMode unit tests added; validation/profiling/builds (T074–T085, T087–T098) need the Editor |
 
 > Data note: the 15 job configs (Phase 6) were machine-validated — valid JSON, unique
 > ids 0–14, monotonic difficulty 1→15. That part *is* verified.
