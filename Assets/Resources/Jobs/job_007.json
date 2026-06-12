@@ -1,0 +1,18 @@
+{
+  "id": 6,
+  "name": "Clocktower Annex",
+  "description": "Complex geometry around a raised structure.",
+  "difficulty": 7,
+  "roofGeometryId": "roof_06",
+  "minCoveragePercent": 90,
+  "minQuality": "HIGH",
+  "surfaceArea": 160.0,
+  "materialBudget": 1780,
+  "timeLimitSeconds": 1320,
+  "difficultyScaling": {
+    "sizeMultiplier": 3.56,
+    "materialAvailability": 0.88,
+    "requiredQuality": "HIGH",
+    "geometryComplexity": 0.66
+  }
+}

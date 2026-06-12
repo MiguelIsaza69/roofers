@@ -1,0 +1,18 @@
+{
+  "id": 2,
+  "name": "Corner Store",
+  "description": "A flat commercial roof. Watch your coverage near the edges.",
+  "difficulty": 3,
+  "roofGeometryId": "roof_02",
+  "minCoveragePercent": 87,
+  "minQuality": "HIGH",
+  "surfaceArea": 80.0,
+  "materialBudget": 980,
+  "timeLimitSeconds": 1080,
+  "difficultyScaling": {
+    "sizeMultiplier": 1.78,
+    "materialAvailability": 0.95,
+    "requiredQuality": "HIGH",
+    "geometryComplexity": 0.28
+  }
+}

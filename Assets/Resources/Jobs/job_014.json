@@ -1,0 +1,18 @@
+{
+  "id": 13,
+  "name": "Skyline Tower Cap",
+  "description": "High-altitude work with no room for error.",
+  "difficulty": 14,
+  "roofGeometryId": "roof_13",
+  "minCoveragePercent": 95,
+  "minQuality": "PRISTINE",
+  "surfaceArea": 600.0,
+  "materialBudget": 6100,
+  "timeLimitSeconds": 2700,
+  "difficultyScaling": {
+    "sizeMultiplier": 13.33,
+    "materialAvailability": 0.82,
+    "requiredQuality": "PRISTINE",
+    "geometryComplexity": 0.92
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "id": 11,
+  "name": "Harbor Terminal",
+  "description": "A sprawling transit roof exposed to coastal wind.",
+  "difficulty": 12,
+  "roofGeometryId": "roof_11",
+  "minCoveragePercent": 94,
+  "minQuality": "PRISTINE",
+  "surfaceArea": 500.0,
+  "materialBudget": 5150,
+  "timeLimitSeconds": 2460,
+  "difficultyScaling": {
+    "sizeMultiplier": 11.11,
+    "materialAvailability": 0.84,
+    "requiredQuality": "PRISTINE",
+    "geometryComplexity": 0.85
+  }
+}

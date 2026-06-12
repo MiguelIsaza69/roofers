@@ -1,0 +1,18 @@
+{
+  "id": 4,
+  "name": "Hillside Cabin",
+  "description": "Steep slopes mean gravity is not your friend.",
+  "difficulty": 5,
+  "roofGeometryId": "roof_04",
+  "minCoveragePercent": 89,
+  "minQuality": "HIGH",
+  "surfaceArea": 95.0,
+  "materialBudget": 1080,
+  "timeLimitSeconds": 1020,
+  "difficultyScaling": {
+    "sizeMultiplier": 2.11,
+    "materialAvailability": 0.90,
+    "requiredQuality": "HIGH",
+    "geometryComplexity": 0.52
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "id": 8,
+  "name": "Cathedral Nave",
+  "description": "Tall, steep, pristine quality required throughout.",
+  "difficulty": 9,
+  "roofGeometryId": "roof_08",
+  "minCoveragePercent": 92,
+  "minQuality": "PRISTINE",
+  "surfaceArea": 240.0,
+  "materialBudget": 2580,
+  "timeLimitSeconds": 1740,
+  "difficultyScaling": {
+    "sizeMultiplier": 5.33,
+    "materialAvailability": 0.86,
+    "requiredQuality": "PRISTINE",
+    "geometryComplexity": 0.80
+  }
+}

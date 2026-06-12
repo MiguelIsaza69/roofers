@@ -1,0 +1,18 @@
+{
+  "id": 7,
+  "name": "Civic Center",
+  "description": "Multiple slopes and skylights to work around.",
+  "difficulty": 8,
+  "roofGeometryId": "roof_07",
+  "minCoveragePercent": 91,
+  "minQuality": "PRISTINE",
+  "surfaceArea": 280.0,
+  "materialBudget": 3050,
+  "timeLimitSeconds": 1860,
+  "difficultyScaling": {
+    "sizeMultiplier": 6.22,
+    "materialAvailability": 0.88,
+    "requiredQuality": "PRISTINE",
+    "geometryComplexity": 0.68
+  }
+}

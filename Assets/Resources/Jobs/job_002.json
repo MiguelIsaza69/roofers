@@ -1,0 +1,18 @@
+{
+  "id": 1,
+  "name": "Baker Bungalow",
+  "description": "A slightly larger home with a gentle slope.",
+  "difficulty": 2,
+  "roofGeometryId": "roof_01",
+  "minCoveragePercent": 86,
+  "minQuality": "STANDARD",
+  "surfaceArea": 55.0,
+  "materialBudget": 720,
+  "timeLimitSeconds": null,
+  "difficultyScaling": {
+    "sizeMultiplier": 1.22,
+    "materialAvailability": 1.0,
+    "requiredQuality": "STANDARD",
+    "geometryComplexity": 0.18
+  }
+}

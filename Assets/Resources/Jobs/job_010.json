@@ -1,0 +1,18 @@
+{
+  "id": 9,
+  "name": "Stadium Concourse",
+  "description": "An enormous ring roof. Manage your budget carefully.",
+  "difficulty": 10,
+  "roofGeometryId": "roof_09",
+  "minCoveragePercent": 93,
+  "minQuality": "PRISTINE",
+  "surfaceArea": 420.0,
+  "materialBudget": 4450,
+  "timeLimitSeconds": 2160,
+  "difficultyScaling": {
+    "sizeMultiplier": 9.33,
+    "materialAvailability": 0.85,
+    "requiredQuality": "PRISTINE",
+    "geometryComplexity": 0.78
+  }
+}

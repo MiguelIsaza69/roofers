@@ -159,16 +159,16 @@
 
 ### Implementation for User Story 4
 
-- [ ] T064 [P] Create job configuration system in Assets/Scripts/Gameplay/JobConfigurationLoader.cs (load job configurations from JSON files per job-configuration-schema.json)
-- [ ] T065 Create job configuration files in Assets/Resources/Jobs/ (job_001.json through job_015.json with progressive difficulty parameters)
-- [ ] T066 [P] Implement JobConfiguration data in Assets/Scripts/Gameplay/JobConfiguration.cs (ID, name, difficulty, geometry reference, coverage requirement, quality, constraints)
-- [ ] T067 Implement job difficulty parameterization in Assets/Scripts/Gameplay/JobConfiguration.cs (sizeMultiplier, materialAvailability, requiredQuality, geometryComplexity)
-- [ ] T068 Integrate JobConfiguration into CareerManager (load job configs on startup, assign to career progression)
-- [ ] T069 [P] Create roof geometry variants in Assets/Models/ (add varied complexity geometries for jobs 1-15)
-- [ ] T070 Implement difficulty progression curve in CareerManager (ensure smooth ramp: early jobs teach, mid jobs challenge, late jobs require mastery)
-- [ ] T071 Implement time limit constraints in RoofingJobInstance (if job has timeLimit, count down, fail if time expires)
-- [ ] T072 Implement material budget constraints in RoofingJobInstance (track available material, prevent exceeding budget, fail if exhausted)
-- [ ] T073 Implement quality requirement enforcement in RoofingJobInstance (require minQuality threshold, fail if final coverage doesn't meet quality requirement)
+- [x] T064 [P] Create job configuration system in Assets/Scripts/Gameplay/JobConfigurationLoader.cs (load job configurations from JSON files per job-configuration-schema.json)
+- [x] T065 Create job configuration files in Assets/Resources/Jobs/ (job_001.json through job_015.json with progressive difficulty; validated: ids 0-14 unique, difficulty monotonic 1-15)
+- [x] T066 [P] Implement JobConfiguration data in Assets/Scripts/Gameplay/JobConfiguration.cs (id, name, difficulty, geometry reference, coverage requirement, quality, constraints + IsValid)
+- [x] T067 Implement job difficulty parameterization in Assets/Scripts/Gameplay/JobConfiguration.cs (DifficultyScalingConfig: sizeMultiplier, materialAvailability, requiredQuality, geometryComplexity)
+- [x] T068 Integrate JobConfiguration into JobCatalog/CareerManager (JobCatalog loads JSON configs on startup, falls back to built-in progression)
+- [ ] T069 [P] Create roof geometry variants in Assets/Models/*.fbx — ⚠️ ART TASK: binary meshes need Editor/DCC; roofGeometryId wired through configs, procedural roof stands in per job area/complexity
+- [x] T070 Implement difficulty progression curve (JobConfigurationLoader sorts by id + ValidateDifficultyCurve warns on dips; 15-job curve authored and verified monotonic)
+- [x] T071 Implement time limit constraints in RoofingJobInstance (counts down while IN_PROGRESS, fails with TIME_EXCEEDED at limit; completion checked first)
+- [x] T072 Implement material budget constraints in RoofingJobInstance (tool blocks apply when budget exhausted; instance fails OUT_OF_MATERIAL when depleted and objective unmet)
+- [x] T073 Implement quality requirement enforcement in RoofingJobInstance (completion requires coverage % AND min thickness for quality; cannot complete below threshold)
 
 **Checkpoint**: User Story 4 fully functional - 10-15 designed jobs, parameterized difficulty, constraints, progression curve. Player can: unlock sequence of jobs with escalating difficulty.
 

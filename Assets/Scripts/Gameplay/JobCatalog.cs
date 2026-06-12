@@ -16,7 +16,17 @@ namespace RoofingSimulator.Gameplay
 
         public JobCatalog()
         {
-            BuildDefaultProgression();
+            // Prefer designer-authored JSON configs (Resources/Jobs/); fall back to the
+            // built-in progression when none are present.
+            var loaded = JobConfigurationLoader.LoadAll();
+            if (loaded != null && loaded.Count > 0)
+            {
+                jobs.AddRange(loaded);
+            }
+            else
+            {
+                BuildDefaultProgression();
+            }
         }
 
         /// <summary>Returns the job at <paramref name="index"/>, or null if out of range.</summary>

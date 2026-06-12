@@ -1,0 +1,18 @@
+{
+  "id": 5,
+  "name": "Warehouse West Wing",
+  "description": "A big flat span with a tight material budget.",
+  "difficulty": 6,
+  "roofGeometryId": "roof_05",
+  "minCoveragePercent": 90,
+  "minQuality": "HIGH",
+  "surfaceArea": 220.0,
+  "materialBudget": 2350,
+  "timeLimitSeconds": 1620,
+  "difficultyScaling": {
+    "sizeMultiplier": 4.89,
+    "materialAvailability": 0.90,
+    "requiredQuality": "HIGH",
+    "geometryComplexity": 0.48
+  }
+}

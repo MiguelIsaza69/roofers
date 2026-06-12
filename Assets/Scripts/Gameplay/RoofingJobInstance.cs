@@ -70,35 +70,37 @@ namespace RoofingSimulator.Gameplay
 
         private void Update()
         {
-            if (currentState != JobState.IN_PROGRESS && currentState != JobState.PAUSED)
+            // Time and constraints only advance while actively playing (not paused).
+            if (currentState != JobState.IN_PROGRESS)
                 return;
 
             elapsedSeconds += Time.deltaTime;
 
-            // Update coverage
+            // Update coverage every frame (T049).
             if (roofSurface != null)
             {
                 roofSurface.UpdateCoverage(appliedMaterials);
             }
 
-            // Check time limit
-            if (job.timeLimitSeconds.HasValue && elapsedSeconds > job.timeLimitSeconds.Value)
+            // Completion takes priority: meeting the objective on the final second or
+            // final drop of material should win over a failure condition (T073).
+            if (CheckCompletion())
+            {
+                CompleteJob();
+                return;
+            }
+
+            // Time limit constraint (T071).
+            if (job.timeLimitSeconds.HasValue && elapsedSeconds >= job.timeLimitSeconds.Value)
             {
                 FailJob(JobFailureReason.TIME_EXCEEDED);
                 return;
             }
 
-            // Check material budget
-            if (materialRemaining < 0 && job.materialBudget.HasValue)
+            // Material budget constraint (T072): out of material and objective not met.
+            if (job.materialBudget.HasValue && materialRemaining <= 0f)
             {
                 FailJob(JobFailureReason.OUT_OF_MATERIAL);
-                return;
-            }
-
-            // Check for completion
-            if (CheckCompletion())
-            {
-                CompleteJob();
             }
         }
 

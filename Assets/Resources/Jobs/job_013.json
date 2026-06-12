@@ -1,0 +1,18 @@
+{
+  "id": 12,
+  "name": "Observatory Dome",
+  "description": "A curved dome where every angle fights your putty.",
+  "difficulty": 13,
+  "roofGeometryId": "roof_12",
+  "minCoveragePercent": 94,
+  "minQuality": "PRISTINE",
+  "surfaceArea": 360.0,
+  "materialBudget": 3720,
+  "timeLimitSeconds": 2040,
+  "difficultyScaling": {
+    "sizeMultiplier": 8.0,
+    "materialAvailability": 0.83,
+    "requiredQuality": "PRISTINE",
+    "geometryComplexity": 0.93
+  }
+}

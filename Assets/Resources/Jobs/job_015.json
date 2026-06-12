@@ -1,0 +1,18 @@
+{
+  "id": 14,
+  "name": "Grand Central Span",
+  "description": "The ultimate job: huge, complex, pristine, on the clock.",
+  "difficulty": 15,
+  "roofGeometryId": "roof_14",
+  "minCoveragePercent": 96,
+  "minQuality": "PRISTINE",
+  "surfaceArea": 750.0,
+  "materialBudget": 7500,
+  "timeLimitSeconds": 3000,
+  "difficultyScaling": {
+    "sizeMultiplier": 16.67,
+    "materialAvailability": 0.82,
+    "requiredQuality": "PRISTINE",
+    "geometryComplexity": 1.0
+  }
+}

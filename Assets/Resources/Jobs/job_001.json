@@ -1,0 +1,18 @@
+{
+  "id": 0,
+  "name": "Smith Residence",
+  "description": "A small starter roof. Learn the basics of spreading putty.",
+  "difficulty": 1,
+  "roofGeometryId": "roof_00",
+  "minCoveragePercent": 85,
+  "minQuality": "STANDARD",
+  "surfaceArea": 45.0,
+  "materialBudget": 600,
+  "timeLimitSeconds": null,
+  "difficultyScaling": {
+    "sizeMultiplier": 1.0,
+    "materialAvailability": 1.0,
+    "requiredQuality": "STANDARD",
+    "geometryComplexity": 0.10
+  }
+}
