@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(& \"C:\\\\Users\\\\Miguel\\\\Documents\\\\Desarrollo\\\\Juego roofting\\\\.specify\\\\scripts\\\\powershell\\\\setup-plan.ps1\" -Json 2>&1 | ConvertFrom-Json)",
+      "PowerShell(New-Item *)",
+      "PowerShell(& \"C:\\\\Users\\\\Miguel\\\\Documents\\\\Desarrollo\\\\Juego roofting\\\\.specify\\\\scripts\\\\powershell\\\\check-prerequisites.ps1\" -Json -RequireTasks -IncludeTasks 2>&1 | ConvertFrom-Json)"
+    ]
+  }
+}

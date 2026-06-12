@@ -1,0 +1,13 @@
+{"event": "step_started", "step_id": "specify", "type": "command", "timestamp": "2026-06-11T20:56:51.780247+00:00"}
+{"event": "step_completed", "step_id": "specify", "status": "completed", "timestamp": "2026-06-11T20:58:29.525556+00:00"}
+{"event": "step_started", "step_id": "review-spec", "type": "gate", "timestamp": "2026-06-11T20:58:29.528614+00:00"}
+{"event": "step_completed", "step_id": "review-spec", "status": "completed", "timestamp": "2026-06-11T20:58:44.533215+00:00"}
+{"event": "step_started", "step_id": "plan", "type": "command", "timestamp": "2026-06-11T20:58:44.537406+00:00"}
+{"event": "step_completed", "step_id": "plan", "status": "completed", "timestamp": "2026-06-11T20:59:51.900639+00:00"}
+{"event": "step_started", "step_id": "review-plan", "type": "gate", "timestamp": "2026-06-11T20:59:51.910983+00:00"}
+{"event": "step_completed", "step_id": "review-plan", "status": "completed", "timestamp": "2026-06-11T21:00:26.120957+00:00"}
+{"event": "step_started", "step_id": "tasks", "type": "command", "timestamp": "2026-06-11T21:00:26.125787+00:00"}
+{"event": "step_completed", "step_id": "tasks", "status": "completed", "timestamp": "2026-06-11T21:01:01.484417+00:00"}
+{"event": "step_started", "step_id": "implement", "type": "command", "timestamp": "2026-06-11T21:01:01.487981+00:00"}
+{"event": "step_completed", "step_id": "implement", "status": "completed", "timestamp": "2026-06-11T21:01:37.494616+00:00"}
+{"event": "workflow_finished", "status": "completed", "timestamp": "2026-06-11T21:01:37.496278+00:00"}

@@ -1,0 +1,159 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Roofing Job Configuration",
+  "description": "Schema for defining roofing jobs in the progression system",
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "difficulty",
+    "roofGeometryId",
+    "minCoveragePercent",
+    "minQuality",
+    "surfaceArea"
+  ],
+  "properties": {
+    "id": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 14,
+      "description": "Job progression index (0=first, 14=last)"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "Human-readable job name (e.g., 'Smith Residence')"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 0,
+      "maxLength": 512,
+      "description": "Brief description of the roofing job"
+    },
+    "difficulty": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 15,
+      "description": "Relative difficulty rating (1=easiest, 15=hardest)"
+    },
+    "roofGeometryId": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$",
+      "description": "Reference to roof geometry asset (e.g., 'residential_small_v1')"
+    },
+    "minCoveragePercent": {
+      "type": "number",
+      "minimum": 60,
+      "maximum": 99,
+      "description": "Minimum surface coverage required (60-99%)"
+    },
+    "minQuality": {
+      "type": "string",
+      "enum": [
+        "STANDARD",
+        "HIGH",
+        "PRISTINE"
+      ],
+      "description": "Minimum material thickness requirement (STANDARD=5mm, HIGH=10mm, PRISTINE=15mm)"
+    },
+    "surfaceArea": {
+      "type": "number",
+      "minimum": 0.1,
+      "description": "Total roof surface area in square meters"
+    },
+    "materialBudget": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "Available material in kg (null = unlimited)"
+    },
+    "timeLimitSeconds": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 60,
+      "description": "Time limit in seconds (null = unlimited). Minimum 60 seconds."
+    },
+    "difficultyScaling": {
+      "type": "object",
+      "description": "Parameters that scale difficulty from baseline",
+      "required": [
+        "sizeMultiplier",
+        "materialAvailability",
+        "requiredQuality"
+      ],
+      "properties": {
+        "sizeMultiplier": {
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 5.0,
+          "description": "Multiplier on surface area (1.0=baseline)"
+        },
+        "materialAvailability": {
+          "type": "number",
+          "minimum": 0.5,
+          "maximum": 1.0,
+          "description": "Fraction of theoretically needed material (0.8=80%)"
+        },
+        "requiredQuality": {
+          "type": "string",
+          "enum": [
+            "STANDARD",
+            "HIGH",
+            "PRISTINE"
+          ],
+          "description": "Quality enforcement level"
+        },
+        "geometryComplexity": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Complexity factor (0=simple, 1=maximum complexity)"
+        }
+      }
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "id": 0,
+      "name": "Smith Residence",
+      "description": "Small residential roof with simple geometry. Perfect for learning the basics.",
+      "difficulty": 1,
+      "roofGeometryId": "residential_small_v1",
+      "minCoveragePercent": 85,
+      "minQuality": "STANDARD",
+      "surfaceArea": 45.0,
+      "materialBudget": 600,
+      "timeLimitSeconds": null,
+      "difficultyScaling": {
+        "sizeMultiplier": 1.0,
+        "materialAvailability": 1.0,
+        "requiredQuality": "STANDARD",
+        "geometryComplexity": 0.1
+      }
+    },
+    {
+      "id": 5,
+      "name": "Commercial Complex - West Wing",
+      "description": "Complex commercial roof with multiple slopes and irregular geometry.",
+      "difficulty": 8,
+      "roofGeometryId": "commercial_complex_v2",
+      "minCoveragePercent": 92,
+      "minQuality": "HIGH",
+      "surfaceArea": 350.0,
+      "materialBudget": 3500,
+      "timeLimitSeconds": 1200,
+      "difficultyScaling": {
+        "sizeMultiplier": 2.5,
+        "materialAvailability": 0.85,
+        "requiredQuality": "HIGH",
+        "geometryComplexity": 0.7
+      }
+    }
+  ]
+}

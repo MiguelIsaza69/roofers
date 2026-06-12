@@ -1,0 +1,231 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Career Save File",
+  "description": "Schema for player career progression save files",
+  "type": "object",
+  "required": [
+    "version",
+    "career"
+  ],
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+$",
+      "description": "Save file format version (e.g., '1.0')"
+    },
+    "career": {
+      "type": "object",
+      "required": [
+        "id",
+        "playerName",
+        "createdDate",
+        "lastModifiedDate",
+        "totalJobsCompleted",
+        "currentJobIndex",
+        "unlockedJobIndex",
+        "totalPlayTime"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$",
+          "minLength": 1,
+          "maxLength": 64,
+          "description": "Unique career identifier"
+        },
+        "playerName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32,
+          "description": "Player name (alphanumeric, spaces allowed)"
+        },
+        "createdDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 UTC creation timestamp"
+        },
+        "lastModifiedDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 UTC last modification timestamp"
+        },
+        "totalJobsCompleted": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 15,
+          "description": "Count of successfully completed jobs"
+        },
+        "currentJobIndex": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 14,
+          "description": "Index of job currently being played or last played"
+        },
+        "unlockedJobIndex": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 14,
+          "description": "Highest job index that has been unlocked (can play)"
+        },
+        "totalPlayTime": {
+          "type": "string",
+          "pattern": "^PT(\\d+H)?(\\d+M)?(\\d+\\.?\\d*S)?$",
+          "description": "ISO 8601 duration (e.g., 'PT2H30M45S')"
+        },
+        "performanceMetrics": {
+          "type": "object",
+          "required": [
+            "totalCoverageArea",
+            "averageCompletionTime",
+            "totalMaterialUsed",
+            "bestCompletionTime",
+            "highestDifficultyCompleted"
+          ],
+          "properties": {
+            "totalCoverageArea": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Cumulative roof coverage area in m²"
+            },
+            "averageCompletionTime": {
+              "type": "string",
+              "pattern": "^PT(\\d+H)?(\\d+M)?(\\d+\\.?\\d*S)?$",
+              "description": "Average time to complete jobs (ISO 8601 duration)"
+            },
+            "totalMaterialUsed": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Total roofing material used in kg"
+            },
+            "bestCompletionTime": {
+              "type": "string",
+              "pattern": "^PT(\\d+H)?(\\d+M)?(\\d+\\.?\\d*S)?$",
+              "description": "Fastest job completion time (ISO 8601 duration)"
+            },
+            "highestDifficultyCompleted": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 14,
+              "description": "Maximum job difficulty completed"
+            }
+          },
+          "additionalProperties": false
+        },
+        "jobCompletions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "jobId",
+              "completedDate",
+              "timeToComplete",
+              "materialUsed",
+              "finalCoveragePercent",
+              "attemptCount",
+              "qualityRating"
+            ],
+            "properties": {
+              "jobId": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 14,
+                "description": "Reference to completed job"
+              },
+              "completedDate": {
+                "type": "string",
+                "format": "date-time",
+                "description": "ISO 8601 UTC completion timestamp"
+              },
+              "timeToComplete": {
+                "type": "string",
+                "pattern": "^PT(\\d+H)?(\\d+M)?(\\d+\\.?\\d*S)?$",
+                "description": "Time spent on this job (ISO 8601 duration)"
+              },
+              "materialUsed": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Material consumed for this job in kg"
+              },
+              "finalCoveragePercent": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Final coverage percentage achieved (0-100)"
+              },
+              "attemptCount": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Number of attempts before successful completion"
+              },
+              "qualityRating": {
+                "type": "string",
+                "enum": [
+                  "EXCELLENT",
+                  "GOOD",
+                  "ADEQUATE",
+                  "POOR"
+                ],
+                "description": "Quality rating based on coverage and thickness"
+              }
+            },
+            "additionalProperties": false
+          },
+          "description": "History of completed jobs (ordered by completedDate)"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "version": "1.0",
+      "career": {
+        "id": "player-abc123",
+        "playerName": "John Roofer",
+        "createdDate": "2026-06-11T10:30:00Z",
+        "lastModifiedDate": "2026-06-11T12:45:00Z",
+        "totalJobsCompleted": 3,
+        "currentJobIndex": 3,
+        "unlockedJobIndex": 4,
+        "totalPlayTime": "PT2H30M",
+        "performanceMetrics": {
+          "totalCoverageArea": 450.5,
+          "averageCompletionTime": "PT12M30S",
+          "totalMaterialUsed": 2400.0,
+          "bestCompletionTime": "PT8M45S",
+          "highestDifficultyCompleted": 4
+        },
+        "jobCompletions": [
+          {
+            "jobId": 0,
+            "completedDate": "2026-06-11T10:45:00Z",
+            "timeToComplete": "PT10M30S",
+            "materialUsed": 720.0,
+            "finalCoveragePercent": 92.5,
+            "attemptCount": 1,
+            "qualityRating": "GOOD"
+          },
+          {
+            "jobId": 1,
+            "completedDate": "2026-06-11T11:10:00Z",
+            "timeToComplete": "PT12M15S",
+            "materialUsed": 850.0,
+            "finalCoveragePercent": 89.3,
+            "attemptCount": 2,
+            "qualityRating": "ADEQUATE"
+          },
+          {
+            "jobId": 2,
+            "completedDate": "2026-06-11T12:45:00Z",
+            "timeToComplete": "PT14M05S",
+            "materialUsed": 830.0,
+            "finalCoveragePercent": 94.7,
+            "attemptCount": 1,
+            "qualityRating": "EXCELLENT"
+          }
+        ]
+      }
+    }
+  ]
+}
