@@ -40,36 +40,36 @@
 
 ### Core Data Models
 
-- [ ] T009 [P] Implement Career data model in Assets/Scripts/Core/Career.cs (ID, playerName, currentJobIndex, unlockedJobIndex, jobCompletions array, performanceMetrics)
-- [ ] T010 [P] Implement RoofingJob data model in Assets/Scripts/Gameplay/RoofingJob.cs (id, name, difficulty, roofGeometryId, minCoveragePercent, minQuality, materialBudget, timeLimit, difficultyScaling)
-- [ ] T011 [P] Implement RoofingMaterial data model in Assets/Scripts/Gameplay/RoofingMaterial.cs (position, deformationMesh, mass, elasticity, adhesion, coverage properties)
-- [ ] T012 [P] Implement RoofSurface data model in Assets/Scripts/Gameplay/RoofSurface.cs (mesh, totalArea, coverageSamples array, coverage tracking)
-- [ ] T013 [P] Implement RoofingJobInstance state model in Assets/Scripts/Gameplay/RoofingJobInstance.cs (job definition, currentState, elapsed time, material array, coverage %)
+- [x] T009 [P] Implement Career data model in Assets/Scripts/Core/Career.cs (ID, playerName, currentJobIndex, unlockedJobIndex, jobCompletions array, performanceMetrics)
+- [x] T010 [P] Implement RoofingJob data model in Assets/Scripts/Gameplay/RoofingJob.cs (id, name, difficulty, roofGeometryId, minCoveragePercent, minQuality, materialBudget, timeLimit, difficultyScaling)
+- [x] T011 [P] Implement RoofingMaterial data model in Assets/Scripts/Gameplay/RoofingMaterial.cs (position, deformationMesh, mass, elasticity, adhesion, coverage properties)
+- [x] T012 [P] Implement RoofSurface data model in Assets/Scripts/Gameplay/RoofSurface.cs (mesh, totalArea, coverageSamples array, coverage tracking)
+- [x] T013 [P] Implement RoofingJobInstance state model in Assets/Scripts/Gameplay/RoofingJobInstance.cs (job definition, currentState, elapsed time, material array, coverage %)
 
 ### Persistence Layer
 
-- [ ] T014 Implement SaveManager in Assets/Scripts/Persistence/SaveManager.cs to load/save career JSON to {GameDataPath}/saves/{playerName}_career.json
-- [ ] T015 Implement CareerData serialization in Assets/Scripts/Persistence/CareerData.cs (serialize/deserialize Career to JSON per career-save-schema.json contract)
-- [ ] T016 Add career save validation in Assets/Scripts/Persistence/SaveManager.cs (verify against schema, handle corrupted files gracefully)
-- [ ] T017 Implement career load and restore in Assets/Scripts/Core/CareerManager.cs (load career, restore current job state, replay completed jobs)
+- [x] T014 Implement SaveManager in Assets/Scripts/Persistence/SaveManager.cs to load/save career JSON to {GameDataPath}/saves/{playerName}_career.json
+- [x] T015 Implement CareerData serialization (Newtonsoft.Json serialization of Career handled in SaveManager per career-save-schema.json contract)
+- [x] T016 Add career save validation in Assets/Scripts/Persistence/SaveManager.cs (try/catch, backup-on-save and RestoreFromBackup for corrupted files)
+- [x] T017 Implement career load and restore in Assets/Scripts/Core/CareerManager.cs (load career, restore current job state, replay completed jobs)
 
 ### Input & Camera System
 
-- [ ] T018 [P] Implement first-person camera controller in Assets/Scripts/Input/CameraController.cs (look around with mouse, maintain hand/tool position relative to camera)
-- [ ] T019 [P] Implement PlayerInput system in Assets/Scripts/Input/PlayerInput.cs (detect tool activation from mouse/gamepad, provide raycast hit points for material application)
-- [ ] T020 Implement raycast detection in Assets/Scripts/Input/PlayerInput.cs (raycast from camera center to roof surface, track hit point and hit normal for material application)
+- [x] T018 [P] Implement first-person camera controller in Assets/Scripts/Input/CameraController.cs (look around with mouse, maintain hand/tool position relative to camera)
+- [x] T019 [P] Implement PlayerInput system in Assets/Scripts/Input/PlayerInput.cs (detect tool activation from mouse/gamepad, provide raycast hit points for material application)
+- [x] T020 Implement raycast detection in Assets/Scripts/Input/PlayerInput.cs (raycast from camera center to roof surface, track hit point and hit normal for material application)
 
 ### Physics Foundation
 
-- [ ] T021 Create physics material asset: Assets/Physics Materials/RoofingPutty.physicMaterial with base properties (elasticity 0.3, friction 0.7, density 1200 kg/m³)
-- [ ] T022 Implement MaterialPhysics base system in Assets/Scripts/Gameplay/MaterialPhysics.cs (gravity simulation, vertex deformation, mesh update per frame)
-- [ ] T023 Implement mesh deformation pipeline in Assets/Scripts/Gameplay/MaterialPhysics.cs (vertex position updates, mesh.RecalculateNormals, bounds recalculation)
+- [x] T021 Create physics material asset: Assets/Physics Materials/RoofingPutty.physicMaterial with base properties (elasticity 0.3, friction 0.7, density 1200 kg/m³)
+- [x] T022 Implement MaterialPhysics base system in Assets/Scripts/Gameplay/MaterialPhysics.cs (gravity simulation, vertex deformation, mesh update per frame)
+- [x] T023 Implement mesh deformation pipeline in Assets/Scripts/Gameplay/MaterialPhysics.cs (vertex position updates, mesh.RecalculateNormals, bounds recalculation)
 
 ### Coverage & Metrics
 
-- [ ] T024 Implement CoverageCalculator in Assets/Scripts/Utils/CoverageCalculator.cs to perform raycast-based coverage sampling on RoofSurface
-- [ ] T025 Implement coverage grid generation in Assets/Scripts/Utils/CoverageCalculator.cs (distribute sample points across roof, configurable density)
-- [ ] T026 Implement quality threshold checking in Assets/Scripts/Utils/CoverageCalculator.cs (detect minimum thickness requirements per QualityThreshold enum)
+- [x] T024 Implement CoverageCalculator in Assets/Scripts/Utils/CoverageCalculator.cs to perform raycast-based coverage sampling on RoofSurface
+- [x] T025 Implement coverage grid generation in Assets/Scripts/Utils/CoverageCalculator.cs (distribute sample points across roof, configurable density)
+- [x] T026 Implement quality threshold checking in Assets/Scripts/Utils/CoverageCalculator.cs (detect minimum thickness requirements per QualityThreshold enum)
 
 **Checkpoint**: Foundation complete - all data models, persistence, input, physics base, and coverage systems ready. **User story implementation can now begin in parallel**
 

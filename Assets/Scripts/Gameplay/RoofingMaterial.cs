@@ -3,108 +3,97 @@ using UnityEngine;
 namespace RoofingSimulator.Gameplay
 {
     /// <summary>
-    /// Represents a deformable roofing material blob with physics properties.
-    /// Materials deform, spread, and respond to gravity and player input.
+    /// A deformable roofing material blob. Holds material properties and coverage
+    /// state, and delegates the actual mesh deformation/settling simulation to
+    /// <see cref="MaterialPhysics"/>. Spreading and adhesion behaviour live here as
+    /// gameplay logic; the per-vertex physics live in MaterialPhysics.
     /// </summary>
+    [RequireComponent(typeof(MaterialPhysics))]
     public class RoofingMaterial : MonoBehaviour
     {
+        [Header("Material Properties")]
         public float totalMass = 5f;
         public float elasticity = 0.3f;
-        public float adhesion = 0.7f;
+        [Range(0f, 1f)] public float adhesion = 0.7f;
         public float density = 1200f;
 
-        private Vector3 velocity;
-        private Vector3 angularVelocity;
-        private Mesh deformationMesh;
-        private MeshCollider meshCollider;
+        [Header("Application Tuning")]
+        [Tooltip("Base radius (m) affected when material is pressed onto the roof.")]
+        [SerializeField] private float applyRadius = 0.25f;
+        [Tooltip("Base downward press strength applied per application.")]
+        [SerializeField] private float applyStrength = 0.05f;
+        [Tooltip("Centre-to-centre distance (m) under which blobs merge.")]
+        [SerializeField] private float mergeDistance = 0.3f;
 
-        public float coverageArea { get; private set; }
-        public float avgThickness { get; private set; }
+        /// <summary>Surface area (m^2) this blob currently contributes to coverage.</summary>
+        public float CoverageArea { get; private set; }
+        /// <summary>Average thickness (mm) of this blob on the roof.</summary>
+        public float AverageThickness { get; private set; }
 
-        private void OnEnable()
+        private MaterialPhysics physics;
+
+        private void Awake()
         {
-            meshCollider = GetComponent<MeshCollider>();
-            if (meshCollider != null)
+            physics = GetComponent<MaterialPhysics>();
+            gameObject.tag = "RoofingMaterial";
+        }
+
+        /// <summary>
+        /// Apply more material at a contact point: adds mass and deforms the mesh so
+        /// the blob presses onto and spreads across the roof surface.
+        /// </summary>
+        public void ApplyAt(Vector3 worldPoint, float addedMass, float pressureScale = 1f)
+        {
+            totalMass += addedMass;
+
+            if (physics != null)
             {
-                deformationMesh = Instantiate(GetComponent<MeshFilter>().mesh);
-                GetComponent<MeshFilter>().mesh = deformationMesh;
-                meshCollider.convex = true;
+                float radius = applyRadius * Mathf.Sqrt(pressureScale);
+                physics.Deform(worldPoint, radius, applyStrength * pressureScale);
             }
         }
 
-        public void ApplyForce(Vector3 force)
-        {
-            velocity += force / totalMass;
-        }
-
-        public void ApplyMaterial(Vector3 applicationPoint, Vector3 applicationForce, float materialMass)
-        {
-            // Apply force at contact point
-            ApplyForce(applicationForce);
-
-            // Increase mass
-            totalMass += materialMass;
-
-            // Update coverage (to be calculated in RoofSurface)
-        }
-
-        public void UpdatePhysics(float deltaTime)
-        {
-            // Apply gravity
-            velocity += Physics.gravity * deltaTime;
-
-            // Update position
-            transform.position += velocity * deltaTime;
-
-            // Damping
-            velocity *= 0.95f;
-            angularVelocity *= 0.95f;
-
-            // Update mesh collider if mesh changed
-            if (meshCollider != null)
-            {
-                meshCollider.convex = true;
-            }
-        }
-
-        public void DeformMesh(Vector3 deformPoint, float deformRadius, float deformStrength)
-        {
-            if (deformationMesh == null)
-                return;
-
-            Vector3[] vertices = deformationMesh.vertices;
-
-            for (int i = 0; i < vertices.Length; i++)
-            {
-                float distance = Vector3.Distance(vertices[i], deformPoint);
-                if (distance < deformRadius)
-                {
-                    float influence = 1f - (distance / deformRadius);
-                    vertices[i] += Vector3.down * influence * deformStrength;
-                }
-            }
-
-            deformationMesh.vertices = vertices;
-            deformationMesh.RecalculateNormals();
-            deformationMesh.RecalculateBounds();
-        }
-
+        /// <summary>
+        /// Merge another nearby blob into this one, combining mass and averaging
+        /// material properties. The absorbed blob is destroyed.
+        /// </summary>
         public void MergeWith(RoofingMaterial other)
         {
-            if (other == null)
+            if (other == null || other == this)
+            {
                 return;
+            }
 
-            // Combine mass
             float combinedMass = totalMass + other.totalMass;
+            if (combinedMass <= 0f)
+            {
+                return;
+            }
 
-            // Average material properties
             elasticity = (elasticity * totalMass + other.elasticity * other.totalMass) / combinedMass;
             adhesion = (adhesion * totalMass + other.adhesion * other.totalMass) / combinedMass;
-
             totalMass = combinedMass;
 
-            // Destroy the other material blob
             Destroy(other.gameObject);
+        }
+
+        /// <summary>True if <paramref name="other"/> is close enough and sticky enough to merge.</summary>
+        public bool CanMergeWith(RoofingMaterial other)
+        {
+            if (other == null || other == this)
+            {
+                return false;
+            }
+
+            float distance = Vector3.Distance(transform.position, other.transform.position);
+            return distance <= mergeDistance && adhesion >= 0.5f;
+        }
+
+        /// <summary>Updates coverage metrics (called by the job instance after a coverage pass).</summary>
+        public void SetCoverageMetrics(float coverageArea, float averageThickness)
+        {
+            CoverageArea = coverageArea;
+            AverageThickness = averageThickness;
         }
     }
 }
