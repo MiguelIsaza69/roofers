@@ -217,6 +217,15 @@ namespace RoofingSimulator.Core
                 return false;
             }
 
+            // Standalone Editor play-test: the RoofingJob scene was entered directly
+            // (no job selected via the menus), so default to the first job instead of
+            // failing and bouncing back to an empty career overview.
+            if (jobIndex < 0)
+            {
+                Debug.Log("InitializeJobInstance: no job selected (standalone play); defaulting to job 0.");
+                jobIndex = 0;
+            }
+
             RoofingJob job = Catalog.GetJob(jobIndex);
             if (job == null)
             {

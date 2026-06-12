@@ -85,6 +85,12 @@ desktop.ini
 /[Ss]aves/
 *.save
 
+# Vendored third-party packages imported into Assets/ (re-import in the Editor on a
+# fresh clone — see DEPENDENCIES_SETUP.md). Keeps ~1900 library files out of history.
+# Remove this block if you prefer to vendor Mirror in the repo.
+/[Aa]ssets/Mirror/
+/[Aa]ssets/Mirror.meta
+
 # NOTE: intentionally NOT ignored (must be versioned):
 #   - ProjectSettings/        (project configuration)
 #   - Packages/manifest.json  (package dependencies)
