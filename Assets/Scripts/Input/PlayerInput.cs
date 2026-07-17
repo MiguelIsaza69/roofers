@@ -44,6 +44,9 @@ namespace RoofingSimulator.Input
             }
         }
 
+        /// <summary>Explicitly set the camera used for the aim raycast (used when the rig is built from code).</summary>
+        public void SetAimCamera(Camera cam) => aimCamera = cam;
+
         private void Update()
         {
             UpdateRaycast();

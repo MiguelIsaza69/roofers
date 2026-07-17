@@ -174,5 +174,16 @@ namespace RoofingSimulator.Core
             LastCompletion = completion;
             SetState(GameState.JobComplete);
         }
+
+        /// <summary>
+        /// Same, for the solo cell-flow scene (Fase B reconnection): the scene records
+        /// the completion itself and stashes it here so the completion screen can show
+        /// it back at the career overview.
+        /// </summary>
+        public void NotifySoloCompletion(JobCompletion completion)
+        {
+            LastCompletion = completion;
+            SetState(GameState.JobComplete);
+        }
     }
 }

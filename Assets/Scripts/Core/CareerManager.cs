@@ -151,6 +151,74 @@ namespace RoofingSimulator.Core
             SaveActiveCareer();
         }
 
+        /// <summary>
+        /// Charge a contract fine (Fase D): abandoning a taken contract costs money.
+        /// The wallet is allowed to go negative — debt is paid off by future jobs.
+        /// </summary>
+        public void RecordFine(int amount)
+        {
+            if (ActiveCareer == null || amount <= 0) return;
+            ActiveCareer.money -= amount;
+            SaveActiveCareer();
+        }
+
+        /// <summary>Does the active career own this shop upgrade (Fase E)?</summary>
+        public bool HasUpgrade(string id)
+        {
+            return ActiveCareer?.ownedUpgrades != null && ActiveCareer.ownedUpgrades.Contains(id);
+        }
+
+        /// <summary>
+        /// Buy a shop upgrade (Fase E). Unlike fines, purchases never create debt: you
+        /// need the cash in hand. Returns false when already owned or short of money.
+        /// </summary>
+        public bool TryBuyUpgrade(string id, int price)
+        {
+            if (ActiveCareer == null || string.IsNullOrEmpty(id) || HasUpgrade(id)) return false;
+            if (ActiveCareer.money < price) return false;
+            if (ActiveCareer.ownedUpgrades == null)
+                ActiveCareer.ownedUpgrades = new System.Collections.Generic.List<string>();
+            ActiveCareer.money -= price;
+            ActiveCareer.ownedUpgrades.Add(id);
+            SaveActiveCareer();
+            return true;
+        }
+
+        // ----- Consumables (Fase E2): bought in packs, spent one charge at a time -----
+
+        /// <summary>Charges of a consumable the active career is carrying.</summary>
+        public int ConsumableCount(string id)
+        {
+            var charges = ActiveCareer?.consumableCharges;
+            if (charges == null || string.IsNullOrEmpty(id)) return 0;
+            int n = 0;
+            for (int i = 0; i < charges.Count; i++)
+                if (charges[i] == id) n++;
+            return n;
+        }
+
+        /// <summary>Buy a pack of charges (stacks). Cash in hand only — no debt.</summary>
+        public bool TryBuyConsumable(string id, int price, int charges)
+        {
+            if (ActiveCareer == null || string.IsNullOrEmpty(id) || charges <= 0) return false;
+            if (ActiveCareer.money < price) return false;
+            if (ActiveCareer.consumableCharges == null)
+                ActiveCareer.consumableCharges = new System.Collections.Generic.List<string>();
+            ActiveCareer.money -= price;
+            for (int i = 0; i < charges; i++) ActiveCareer.consumableCharges.Add(id);
+            SaveActiveCareer();
+            return true;
+        }
+
+        /// <summary>Spend one charge (used in-level). Saves immediately.</summary>
+        public bool TryUseConsumable(string id)
+        {
+            var charges = ActiveCareer?.consumableCharges;
+            if (charges == null || !charges.Remove(id)) return false;
+            SaveActiveCareer();
+            return true;
+        }
+
         /// <summary>List player names with existing saves (for a load menu).</summary>
         public string[] GetSavedCareerNames()
         {
